@@ -1,0 +1,24 @@
+---
+title: "ML_Documentation"
+author: "Geiser, Gruen, Hefti, Kuster"
+date: "10/16/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Machine Learning Algorithms - Documentation
+
+load raw dataset
+```{r}
+rawdata <- read.csv('germany_housing_original_data.csv', header = T, row.names = 'X')
+head(rawdata)
+```
+
+see data
+```{r}
+str(rawdata)
+dim(rawdata)
+```
