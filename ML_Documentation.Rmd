@@ -38,14 +38,63 @@ dim(data)
 colnames(data)
 ```
 
-summary of data
-```{r}
-summary(data)
-```
-
 see datatypes
 ```{r}
 #install.packages('dplyr')
 library(dplyr)
 glimpse(data)
+```
+
+summary of data
+```{r}
+print(summary(data))
+```
+extract rows with Year_renovated > 2020 and replace with NA
+```{r}
+data %>%
+filter(Year_renovated > 2020)
+
+data <- data %>% mutate(Year_renovated = replace(Year_renovated, Year_renovated > 2020, NA))
+```
+
+extract rows with Year_built > 2020 and replace with NA
+```{r}
+data %>%
+filter(Year_built > 2020)
+
+data <- data %>% mutate(Year_built = replace(Year_built, Year_built > 2020, NA))
+```
+
+see data and summary
+```{r}
+head(data)
+print(summary(data))
+```
+extract unique values in Heating
+```{r}
+unique(data$Heating)
+```
+
+extract unique values in Energy_source
+
+```{r}
+unique(data$Energy_source)
+```
+
+find data with < 10.00 Living_space and drop rows
+```{r}
+data %>%
+arrange(data$Living_space)
+which(data$Living_space < 10.0)
+data1 <- data %>% slice(-c(344,7738,8177,9822,9956))
+data <- data1
+head(data)
+```
+find rows with price 0
+
+```{r}
+data %>%
+arrange(data$Price)
+which(data$Price > 10000 & data$Price < 15000)
+data[c(80, 84, 328, 460, 2971,3189, 3192, 3783, 4688, 5069, 5707, 5708, 5709, 5774, 6079, 6661, 6987, 7591,7656, 7838, 7859, 7997, 8617, 8738, 8868, 8874, 9001, 9019, 9100, 9378, 9681, 9755, 9777, 9936, 9974, 10352),]
 ```
