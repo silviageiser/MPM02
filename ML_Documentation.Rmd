@@ -16,7 +16,7 @@ knitr::opts_chunk$set(echo = TRUE)
 ---
 date: '10/17/2020'
 author: Silvia Geiser
-main changes: 
+main changes: load raw data, data cleaning
 ---
 load raw dataset
 ```{r}
@@ -27,4 +27,25 @@ head(rawdata)
 see data
 ```{r}
 dim(rawdata)
+```
+
+
+drop columns (Usable_area, Free_of_Relation, Energy_certificate, Energy_certificate_type, Energy_consumption) from raw data
+```{r}
+data <- subset(rawdata, select = -c(Usable_area, Free_of_Relation, Energy_certificate, Energy_certificate_type, Energy_consumption))
+head(data)
+dim(data)
+colnames(data)
+```
+
+summary of data
+```{r}
+summary(data)
+```
+
+see datatypes
+```{r}
+install.packages('dplyr')
+library(dplyr)
+glimpse(data)
 ```
