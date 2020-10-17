@@ -80,6 +80,13 @@ extract unique values in Energy_source
 ```{r}
 unique(data$Energy_source)
 ```
+group and clean up Energy_source categories
+```{r}
+install.packages(plyr)
+data1 <- data
+data1$Energy_source <- revalue(data1$Energy_source, c(" Ã–l " = 'oil', ))
+head(a)
+
 
 find data with < 10.00 Living_space and drop rows
 ```{r}
@@ -90,6 +97,8 @@ data1 <- data %>% slice(-c(344,7738,8177,9822,9956))
 data <- data1
 head(data)
 ```
+
+
 find rows with price 0
 
 ```{r}
@@ -97,4 +106,6 @@ data %>%
 arrange(data$Price)
 which(data$Price > 10000 & data$Price < 15000)
 data[c(80, 84, 328, 460, 2971,3189, 3192, 3783, 4688, 5069, 5707, 5708, 5709, 5774, 6079, 6661, 6987, 7591,7656, 7838, 7859, 7997, 8617, 8738, 8868, 8874, 9001, 9019, 9100, 9378, 9681, 9755, 9777, 9936, 9974, 10352),]
+
+data[c(2914,  3191,  6837,  7943,  9044,  9144,  9467,  9518,  9611,  9658,  9667,  9723,  9791,  9792,  9798,  9799, 10475),]
 ```
