@@ -45,7 +45,7 @@ summary(data)
 
 see datatypes
 ```{r}
-install.packages('dplyr')
+#install.packages('dplyr')
 library(dplyr)
 glimpse(data)
 ```
