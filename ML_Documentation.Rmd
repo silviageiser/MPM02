@@ -9,7 +9,9 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-# Machine Learning Algorithms - Documentation 
+
+
+## Machine Learning Algorithms - Documentation 
 
 load raw dataset
 ```{r}
