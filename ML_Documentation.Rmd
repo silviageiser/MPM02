@@ -1,6 +1,6 @@
 ---
 title: "ML_Documentation"
-author: "Geiser, Gruen, Hefti, Kuster"
+author: "Geiser Silvia, Gruen Markus, Hefti Nico, Kuster Thomas"
 date: "10/16/2020"
 output: html_document
 ---
