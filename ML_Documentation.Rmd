@@ -13,6 +13,11 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ## Machine Learning Algorithms - Documentation 
 
+---
+date: '10/17/2020'
+author: Silvia Geiser
+main changes: 
+---
 load raw dataset
 ```{r}
 rawdata <- read.csv('germany_housing_original_data.csv', header = T, row.names = 'X')
