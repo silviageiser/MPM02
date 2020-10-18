@@ -76,7 +76,7 @@ print(summary(data))
 ```
 extract unique values in Heating
 ```{r}
-levels(data$Heating)
+levels(data$Heating)aaaa
 ```
 
 extract unique values in Energy_source
