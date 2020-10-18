@@ -1,0 +1,21 @@
+---
+title: "Machine_Learning_Algorithms_Documentation"
+author: "Geiser, Gruen, Hefti, Kuster"
+date: "10/18/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Machine Learning Algorithms
+
+# Dataset - German Housing Data 
+
+
+load cleaned dataset
+```{r}
+data <- read.csv('germany_housing_cleaned.csv',header =T, sep=',', encoding='UTF-8')
+head(data)
+```
