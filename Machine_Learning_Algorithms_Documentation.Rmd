@@ -19,3 +19,28 @@ load cleaned dataset
 data <- read.csv('germany_housing_cleaned.csv',header =T, sep=',', encoding='UTF-8')
 head(data)
 ```
+```{r}
+str(data)
+```
+## WEEK 1
+# Linear Models
+
+Simple linear regression
+
+Plot Type ~ Price
+```{r}
+colnames(data)
+options(scipen=999)
+attach(data)
+par(mfrow=c(2,1))
+lm.price_rooms <- lm(Price ~ Rooms)
+print(summary(lm.price_rooms))
+plot(Price ~ Rooms, main = 'Price ~ Rooms', log='x')
+abline(lm.price_rooms)
+plot(Price ~ Rooms, col = Type, pch = 19, main = 'Price ~ Rooms', log='x')
+```
+```{r}
+par(mfrow=c(2,1))
+boxplot(Price ~ Type, main = 'Price ~ Type plotted with outliers')
+boxplot(Price ~ Type, main = 'Price ~ Type plotted WITHOUT outliers', outline=FALSE)
+```
