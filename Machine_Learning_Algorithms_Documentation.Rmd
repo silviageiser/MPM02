@@ -51,3 +51,4 @@ Hallo Silvia. Das ist ein Test ob Github bei mir funktioniert. Kann Nachher gel√
 lm.type_rooms <- lm(Price ~ Type, data = data)
 summary(lm.type_rooms)
 ```
+Neuer Versuch
