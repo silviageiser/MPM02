@@ -44,3 +44,10 @@ par(mfrow=c(2,1))
 boxplot(Price ~ Type, main = 'Price ~ Type plotted with outliers')
 boxplot(Price ~ Type, main = 'Price ~ Type plotted WITHOUT outliers', outline=FALSE)
 ```
+
+Hallo Silvia. Das ist ein Test ob Github bei mir funktioniert. Kann Nachher gelöscht werden
+
+```{r}
+lm.type_rooms <- lm(Price ~ Type, data = data)
+summary(lm.type_rooms)
+```
