@@ -21,34 +21,47 @@ head(data)
 ```
 ```{r}
 str(data)
+colnames(data)
 ```
+
+
 ## WEEK 1
 # Linear Models
 
 Simple linear regression
 
-Plot Type ~ Price
+Data Visualisation
+
+Plot Price ~ Rooms
 ```{r}
-colnames(data)
-options(scipen=999)
-attach(data)
-par(mfrow=c(2,1))
+options(scipen=999) #block scientific notation
+
+library(ggplot2)
+#Rooms
+ggplot(data, aes(Rooms, Price)) + geom_point()+ geom_smooth(method = lm, se = F, color= 'red')
+ggplot(data, aes(Rooms, Price)) + geom_point(aes(size=Living_space, colour = factor(State)))
+ggplot(data, aes(Rooms, Price)) + geom_bin2d(bins = 30)
+
+#Living Space
+ggplot(data, aes(Living_space, Price)) + geom_point() + geom_smooth(method = lm, se = F, color = 'red')
+
+
+
+
 lm.price_rooms <- lm(Price ~ Rooms)
 print(summary(lm.price_rooms))
-plot(Price ~ Rooms, main = 'Price ~ Rooms', log='x')
-abline(lm.price_rooms)
-plot(Price ~ Rooms, col = Type, pch = 19, main = 'Price ~ Rooms', log='x')
+
 ```
 ```{r}
+
+# use ggplot instead - to do
 par(mfrow=c(2,1))
 boxplot(Price ~ Type, main = 'Price ~ Type plotted with outliers')
 boxplot(Price ~ Type, main = 'Price ~ Type plotted WITHOUT outliers', outline=FALSE)
 ```
 
-Hallo Silvia. Das ist ein Test ob Github bei mir funktioniert. Kann Nachher gelöscht werden
 
 ```{r}
 lm.type_rooms <- lm(Price ~ Type, data = data)
 summary(lm.type_rooms)
 ```
-Neuer Versuch
