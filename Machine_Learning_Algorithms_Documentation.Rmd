@@ -2,7 +2,9 @@
 title: "Machine_Learning_Algorithms_Documentation"
 author: "Geiser, Gruen, Hefti, Kuster"
 date: "10/18/2020"
-output: html_document
+output:
+  pdf_document: default
+  html_document: default
 ---
 
 ```{r setup, include=FALSE}
@@ -13,12 +15,13 @@ knitr::opts_chunk$set(echo = TRUE)
 
 # Dataset - German Housing Data 
 
-
 load cleaned dataset
 ```{r}
 data <- read.csv('germany_housing_cleaned.csv',header =T, sep=',', encoding='UTF-8')
 head(data)
 ```
+
+info
 ```{r}
 str(data)
 colnames(data)
@@ -50,8 +53,10 @@ ggplot(data, aes(Living_space, Price)) + geom_point() + geom_smooth(method = lm,
 
 lm.price_rooms <- lm(Price ~ Rooms)
 print(summary(lm.price_rooms))
-
 ```
+
+
+
 ```{r}
 
 # use ggplot instead - to do
