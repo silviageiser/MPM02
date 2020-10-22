@@ -2,21 +2,19 @@
 title: "Machine_Learning_Algorithms_Documentation"
 author: "Geiser, Gruen, Hefti, Kuster"
 date: "10/18/2020"
-output:
-  pdf_document: default
-  html_document: default
+output: html_document: default
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-## Machine Learning Algorithms
+**Machine Learning Algorithms**
 
-# Dataset - German Housing Data 
+**Dataset - German Housing Data**
 
 load cleaned dataset
-demo silvi
+
 ```{r}
 data <- read.csv('germany_housing_cleaned.csv',header =T, sep=',', encoding='UTF-8')
 head(data)
@@ -29,8 +27,9 @@ colnames(data)
 ```
 
 
-## WEEK 1
-# Linear Models
+**WEEK 1**
+
+**Linear Models**
 
 Simple linear regression
 
@@ -48,6 +47,7 @@ ggplot(data, aes(Rooms, Price)) + geom_bin2d(bins = 30)
 
 #Living Space
 ggplot(data, aes(Living_space, Price)) + geom_point() + geom_smooth(method = lm, se = F, color = 'red')
+ggplot(data, aes(Living_space, Lot)) + geom_smooth(method = lm, se =F, color = 'red')
 
 
 
