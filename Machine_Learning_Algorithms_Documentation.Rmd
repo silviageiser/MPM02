@@ -71,3 +71,77 @@ boxplot(Price ~ Type, main = 'Price ~ Type plotted WITHOUT outliers', outline=FA
 lm.type_rooms <- lm(Price ~ Type, data = data)
 summary(lm.type_rooms)
 ```
+
+**WEEK 3**
+
+**GLM**
+
+Possion Model
+
+```{r warning=False}
+glm.rooms <- glm(Rooms ~ Type,
+family = "poisson",
+data = data)
+
+summary(glm.rooms)
+
+```
+```{r}
+set.seed(99)
+sim.data.rooms.Poisson <- simulate(glm.rooms)
+##
+NROW(sim.data.rooms.Poisson)
+
+head(sim.data.rooms.Poisson)
+tail(sim.data.rooms.Poisson)
+
+```
+Visualisierung ;)
+``` {r}
+ggplot(mapping = aes(y = sim.data.rooms.Poisson$sim_1,
+x = data$Type)) +
+geom_boxplot() +
+geom_hline(yintercept = 0) +
+ylab("simulated no. of rooms\n(assuming Poisson dist)") +
+xlab("type")
+```
+Binomial Model
+For this model, we make a binary variable out of the continious variable Price of our dataset
+``` {r}
+
+data.price.types <- data[c('Price', 'Type')]
+
+data.price.types$Price <- factor(ifelse(data.price.types$Price < 1000000, "Below 1 Million", "Above 1 Million"))
+
+```
+Model Muss ich nochmal anschauen
+``` {r}
+glm.pricetype <- glm(Price ~ Type,
+family = "binomial",
+data = data.price.types)
+
+summary(glm.pricetype)
+```
+Visualisation Muss ich nochmal anschauen
+``` {r}
+library(ggplot2)
+new.datap = data.frame(Type = seq(0, 12, length.out = 100))
+new.datap$pred.price <- predict(glm.pricetype, newdata = new.datap,
+                                 type = "response")
+
+ggplot(data = data.price.types,
+       mapping = aes(y = Price,
+                     x = Type)) + 
+  ylim(0,1) +
+  geom_hline(yintercept = 0:1, col = "gray") +
+  ##
+  ## predictions for conc 0 --> 5
+  geom_point(data = new.datap,
+               mapping = aes(
+      y = pred.price,
+      x = Type)) +
+  ##
+  ## actual observations
+  geom_point(col = "red", 
+             size = 3)
+```
