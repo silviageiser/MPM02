@@ -16,9 +16,25 @@ knitr::opts_chunk$set(echo = TRUE)
 load cleaned dataset
 
 ```{r}
-data <- read.csv('germany_housing_cleaned.csv',header =T, sep=',', encoding='UTF-8')
-head(data)
+#data <- read.csv('germany_housing_cleaned.csv',header =T, sep=',', encoding='UTF-8')
+#head(data)
+data_new <- read.csv('germany_housing_cleaned_v02.csv',header =T, sep=';', encoding='UTF-8')
+head(data_new)
+
 ```
+
+``` {r}
+
+d <- density(data_new$X.U.FEFF.Price)
+plot(d)
+```
+
+``` {r}
+
+d.log <- density(log(data_new$X.U.FEFF.Price))
+plot(d.log)
+```
+
 
 info
 ```{r}
