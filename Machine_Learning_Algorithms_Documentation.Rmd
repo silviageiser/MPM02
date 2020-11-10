@@ -16,32 +16,45 @@ knitr::opts_chunk$set(echo = TRUE)
 load cleaned dataset
 
 ```{r}
-#data <- read.csv('germany_housing_cleaned.csv',header =T, sep=',', encoding='UTF-8')
-#head(data)
-data_new <- read.csv('germany_housing_cleaned_v02.csv',header =T, sep=';', encoding='UTF-8')
-head(data_new)
+# load dataset
+data <- read.csv('germany_housing_cleaned_v03.csv',header =T, sep=';', encoding='UTF-8')
+
+# rename Price variable
+names(data)[names(data) == "X.U.FEFF.Price"] <- "Price"
+head(data)
 
 ```
-
-``` {r}
-
-d <- density(data_new$X.U.FEFF.Price)
-plot(d)
-```
-
-``` {r}
-
-d.log <- density(log(data_new$X.U.FEFF.Price))
-plot(d.log)
-```
-
-
-info
 ```{r}
 str(data)
 colnames(data)
 ```
 
+``` {r}
+# We look at the distribution of our price variable. Highly right skewed.
+d <- density(data$Price)
+plot(d)
+```
+
+``` {r}
+#log trasnform our price var to get more normale distributed var.
+d.log <- density(log(data$Price))
+plot(d.log)
+```
+
+``` {r}
+# Some Variable are highly right skewed.
+#Price, Living_space, lot, rooms and more. We will use the logtransformed datain our analysis.
+d.density <- density(log(data$Living_space))
+plot(d.density)
+hist(log(data$Rooms))
+```
+``` {r}
+# Some Variable are highly right skewed.
+#Price, Living_space, lot, rooms and more. We will use the logtransformed datain our analysis.
+d.density <- density(log(data$Living_space))
+plot(d.density)
+hist(log(data$Rooms))
+```
 
 **WEEK 1**
 
@@ -51,41 +64,96 @@ Simple linear regression
 
 Data Visualisation
 
-Plot Price ~ Rooms
+Plot Price ~ Living_Space
 ```{r}
 options(scipen=999) #block scientific notation
 
 library(ggplot2)
-#Rooms
-ggplot(data, aes(Rooms, Price)) + geom_point()+ geom_smooth(method = lm, se = F, color= 'red')
-ggplot(data, aes(Rooms, Price)) + geom_point(aes(size=Living_space, colour = factor(State)))
-ggplot(data, aes(Rooms, Price)) + geom_bin2d(bins = 30)
+
 
 #Living Space
-ggplot(data, aes(Living_space, Price)) + geom_point() + geom_smooth(method = lm, se = F, color = 'red')
-ggplot(data, aes(Living_space, Lot)) + geom_smooth(method = lm, se =F, color = 'red')
+ggplot(data, aes(log(Living_space), log(Price))) + geom_point() + geom_smooth(method = lm, se = F, color = 'red')
+#ggplot(data, aes(log(Living_space), log(Lot))) + geom_smooth(method = lm, se =F, color = 'red')
 
-
-
-
-lm.price_rooms <- lm(Price ~ Rooms)
-print(summary(lm.price_rooms))
+```
+``` {r}
+lm.log.price_living <- lm(log(data$Price) ~ log(data$Living_space))
+print(summary(lm.log.price_living))
 ```
 
+Data Visualisation
+
+Plot Price ~ Rooms
+
+```` {r}
+library(ggplot2)
+#Rooms
+ggplot(data, aes(log(Rooms), log(Price))) + geom_point()+ geom_smooth(method = lm, se = F, color= 'red')
+ggplot(data, aes(log(Rooms), log(Price))) + geom_point(aes(size=Living_space, colour = factor(State)))
+ggplot(data, aes(log(Rooms), log(Price))) + geom_bin2d(bins = 30)
+
+lm.log.price_rooms <- lm(log(data$Price) ~ log(data$Rooms))
+print(summary(lm.log.price_rooms))
+````
+
+``` {r}
+#Living Space
+ggplot(data, aes(log(Price), log(Lot))) + geom_point() + geom_smooth(method = lm, se = F, color = 'red')
+#ggplot(data, aes(log(Living_space), log(Lot))) + geom_smooth(method = lm, se =F, color = 'red')
+```
+
+``` {r}
+lm.log.Lot_Price <- lm(log(data$Lot) ~ log(data$Price))
+print(summary(lm.log.Lot_Price))
+```
 
 
 ```{r}
 
 # use ggplot instead - to do
 par(mfrow=c(2,1))
-boxplot(Price ~ Type, main = 'Price ~ Type plotted with outliers')
-boxplot(Price ~ Type, main = 'Price ~ Type plotted WITHOUT outliers', outline=FALSE)
+boxplot(log(data$Price) ~ Type, main = 'Price ~ Type plotted with outliers')
+boxplot(log(data$Price) ~ Type, main = 'Price ~ Type plotted WITHOUT outliers', outline=FALSE)
 ```
 
 
 ```{r}
 lm.type_rooms <- lm(Price ~ Type, data = data)
 summary(lm.type_rooms)
+```
+**WEEK 2**
+
+**model nonlinearity**
+
+Polynomials
+Graphical analysis
+``` {r}
+gg.PriceRooms <- ggplot(data = data,
+mapping = aes(y = log(Price),
+x = Rooms)) +
+geom_point()
+gg.PriceRooms +
+geom_smooth()
+
+```
+``` {r}
+gg.PriceRooms <- ggplot(data = data,
+mapping = aes(y = log(Price),
+x = log(Rooms))) +
+geom_point()
+gg.PriceRooms +
+geom_smooth()
+
+```
+
+``` {r}
+gg.LotPrice <- ggplot(data = data,
+mapping = aes(y = log(Lot),
+x = log(Price))) +
+geom_point()
+gg.LotPrice +
+geom_smooth()
+
 ```
 
 **WEEK 3**
@@ -102,6 +170,7 @@ data = data)
 summary(glm.rooms)
 
 ```
+
 ```{r}
 set.seed(99)
 sim.data.rooms.Poisson <- simulate(glm.rooms)
@@ -121,8 +190,101 @@ geom_hline(yintercept = 0) +
 ylab("simulated no. of rooms\n(assuming Poisson dist)") +
 xlab("type")
 ```
-Binomial Model
-For this model, we make a binary variable out of the continious variable Price of our dataset
+``` {r}
+#install.packages('rtools')
+
+```
+
+
+``` {r}
+
+
+#install.packages('mltools')
+library(mltools)
+
+# Resulting bins have an equal number of observations in each group
+data[, "wt2"] <- bin_data(data$Price, bins=4, binType = "quantile")
+
+# Resulting bins are equally spaced from min to max
+data[, "wt3"] <- bin_data(data$Price, bins=4, binType = "explicit")
+
+# Or if you'd rather define the bins yourself
+data[, "wt4"] <- bin_data(data$Price, bins=c(-Inf, 250, 322, Inf), binType = "explicit")
+head(data)
+```
+
+``` {r}
+glm.roomswt2 <- glm(Rooms ~ wt2,
+family = "poisson",
+data = data)
+
+summary(glm.roomswt2)
+```
+``` {r}
+set.seed(99)
+sim.data.rooms.Poissonwt2 <- simulate(glm.roomswt2)
+##
+NROW(sim.data.rooms.Poissonwt2)
+
+head(sim.data.rooms.Poissonwt2)
+tail(sim.data.rooms.Poissonwt2)
+```
+``` {r}
+library(ggplot2)
+ggplot(mapping = aes(y = sim.data.rooms.Poissonwt2$sim_1,
+x = data$wt2)) +
+geom_boxplot() +
+geom_hline(yintercept = 0) +
+ylab("simulated no. of rooms\n(assuming Poisson dist)") +
+xlab("Groups")
+```
+Binary Model
+Let’s fit a binary model
+
+``` {r}
+data$MillionYes <- ifelse(data$Price > 1000000, 1, 0)
+data$MillionYes
+
+ggplot(data = data,
+mapping = aes(y = MillionYes,
+x = log(Living_space))) +
+geom_point()
+```
+Let’s fit a logistic regression model and add fit to the this graph
+
+``` {r}
+ggplot(data = data,
+       mapping = aes(y = MillionYes,
+                     x = log(Living_space))) + 
+  geom_point() +
+  geom_smooth(method = "glm", 
+              se = FALSE,
+              method.args = list(family = "binomial")) 
+```
+
+
+
+Let's try something else
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Das folgende Kann vielleicht entfernt werden.
 ``` {r}
 
 data.price.types <- data[c('Price', 'Type')]
@@ -130,7 +292,6 @@ data.price.types <- data[c('Price', 'Type')]
 data.price.types$Price <- factor(ifelse(data.price.types$Price < 1000000, "Below 1 Million", "Above 1 Million"))
 
 ```
-Model Muss ich nochmal anschauen
 ``` {r}
 glm.pricetype <- glm(Price ~ Type,
 family = "binomial",
@@ -138,7 +299,6 @@ data = data.price.types)
 
 summary(glm.pricetype)
 ```
-Visualisation Muss ich nochmal anschauen
 ``` {r}
 library(ggplot2)
 new.datap = data.frame(Type = seq(0, 12, length.out = 100))
