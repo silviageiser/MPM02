@@ -1,13 +1,17 @@
 ---
+output:
+  html_document: default
+  'html_document: default': default
+---
+```` Markdown
+---
 title: "Machine_Learning_Algorithms_Documentation"
 author: "Geiser, Gruen, Hefti, Kuster"
-date: "10/18/2020"
+date: "11/11/2020"
 output: html_document: default
 ---
 
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
-```
+
 
 **Machine Learning Algorithms**
 
@@ -103,17 +107,17 @@ ggplot(data, aes(log(Price), log(Lot))) + geom_point() + geom_smooth(method = lm
 ```
 
 ``` {r}
-lm.log.Lot_Price <- lm(log(data$Lot) ~ log(data$Price))
-print(summary(lm.log.Lot_Price))
+#lm.log.Lot_Price <- lm(log(data$Lot) ~ log(data$Price))
+#print(summary(lm.log.Lot_Price))
 ```
 
 
 ```{r}
 
 # use ggplot instead - to do
-par(mfrow=c(2,1))
-boxplot(log(data$Price) ~ Type, main = 'Price ~ Type plotted with outliers')
-boxplot(log(data$Price) ~ Type, main = 'Price ~ Type plotted WITHOUT outliers', outline=FALSE)
+#par(mfrow=c(2,1))
+#boxplot(log(data$Price) ~ Type, main = 'Price ~ Type plotted with outliers')
+#boxplot(log(data$Price) ~ Type, main = 'Price ~ Type plotted WITHOUT outliers', outline=FALSE)
 ```
 
 
@@ -162,7 +166,7 @@ geom_smooth()
 
 Possion Model
 
-```{r warning=False}
+```{r}
 glm.rooms <- glm(Rooms ~ Type,
 family = "poisson",
 data = data)
@@ -190,10 +194,7 @@ geom_hline(yintercept = 0) +
 ylab("simulated no. of rooms\n(assuming Poisson dist)") +
 xlab("type")
 ```
-``` {r}
-#install.packages('rtools')
 
-```
 
 
 ``` {r}
@@ -284,40 +285,3 @@ Let's try something else
 
 
 
-Das folgende Kann vielleicht entfernt werden.
-``` {r}
-
-data.price.types <- data[c('Price', 'Type')]
-
-data.price.types$Price <- factor(ifelse(data.price.types$Price < 1000000, "Below 1 Million", "Above 1 Million"))
-
-```
-``` {r}
-glm.pricetype <- glm(Price ~ Type,
-family = "binomial",
-data = data.price.types)
-
-summary(glm.pricetype)
-```
-``` {r}
-library(ggplot2)
-new.datap = data.frame(Type = seq(0, 12, length.out = 100))
-new.datap$pred.price <- predict(glm.pricetype, newdata = new.datap,
-                                 type = "response")
-
-ggplot(data = data.price.types,
-       mapping = aes(y = Price,
-                     x = Type)) + 
-  ylim(0,1) +
-  geom_hline(yintercept = 0:1, col = "gray") +
-  ##
-  ## predictions for conc 0 --> 5
-  geom_point(data = new.datap,
-               mapping = aes(
-      y = pred.price,
-      x = Type)) +
-  ##
-  ## actual observations
-  geom_point(col = "red", 
-             size = 3)
-```
