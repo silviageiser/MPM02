@@ -160,6 +160,29 @@ geom_smooth()
 
 ```
 
+```{r}
+library(mgcv)
+gam.1 <- gam(log(Price) ~ s(Rooms), data = data)
+summary(gam.1)
+
+
+plot(gam.1, residuals = TRUE, cex = 2)
+
+```
+``` {r}
+gam.2 <- gam(log(Price) ~ log(Living_space) +
+s(Rooms) + s(Garages),
+data = data)
+summary(gam.2)
+
+
+```
+``` {r}
+plot(gam.2, residuals = TRUE, select = 1)
+
+```
+
+
 **WEEK 3**
 
 **GLM**
