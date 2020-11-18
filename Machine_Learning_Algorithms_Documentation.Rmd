@@ -17,48 +17,48 @@ output: html_document: default
 
 **Dataset - German Housing Data**
 
-load cleaned dataset
+We cleaned the origin data set: Variable rooms, bathrooms, bedrooms, floors, garages, Year_built, Year_renovated changed from decimal to integer.
 
-```{r}
+We created a subset with buildings up to 20 rooms for our analysis.
+
+##Load of the cleaned dataset
+
+```{r, include=TRUE}
 # load dataset
 data <- read.csv('germany_housing_cleaned_v03.csv',header =T, sep=';', encoding='UTF-8')
 
-# rename Price variable
+# Renaming of the variable Price due to contamination of the variable name "Price" of the origin dataset when cleaning up the data
 names(data)[names(data) == "X.U.FEFF.Price"] <- "Price"
 head(data)
 
 ```
-```{r}
+```{r , include = TRUE}
 str(data)
 colnames(data)
 ```
 
+##We start with the analysis of the distribution of the variables:
+
+- Price
+- Livingspace
+- Rooms
+
+#Some Variable are highly right skewed.
+#Price, Living_space, lot, rooms and more. We will use the logtransformed data in our analysis.
+
 ``` {r}
-# We look at the distribution of our price variable. Highly right skewed.
 d <- density(data$Price)
 plot(d)
-```
 
-``` {r}
-#log trasnform our price var to get more normale distributed var.
 d.log <- density(log(data$Price))
 plot(d.log)
+
+d.density <- density(log(data$Living_space))
+plot(d.density)
+hist(log(data$Rooms))
+
 ```
 
-``` {r}
-# Some Variable are highly right skewed.
-#Price, Living_space, lot, rooms and more. We will use the logtransformed datain our analysis.
-d.density <- density(log(data$Living_space))
-plot(d.density)
-hist(log(data$Rooms))
-```
-``` {r}
-# Some Variable are highly right skewed.
-#Price, Living_space, lot, rooms and more. We will use the logtransformed datain our analysis.
-d.density <- density(log(data$Living_space))
-plot(d.density)
-hist(log(data$Rooms))
-```
 
 **WEEK 1**
 
@@ -68,7 +68,8 @@ Simple linear regression
 
 Data Visualisation
 
-Plot Price ~ Living_Space
+We plot the response variable "Price" against the predictor "Living_Space" to get a first impression and grahical analysis.
+
 ```{r}
 options(scipen=999) #block scientific notation
 
@@ -80,14 +81,21 @@ ggplot(data, aes(log(Living_space), log(Price))) + geom_point() + geom_smooth(me
 #ggplot(data, aes(log(Living_space), log(Lot))) + geom_smooth(method = lm, se =F, color = 'red')
 
 ```
+
+It seems to be a positive relationsship between these two variables. More livingspace seems to have a higher price. So we fit a simple regession model to the data.
+
 ``` {r}
 lm.log.price_living <- lm(log(data$Price) ~ log(data$Living_space))
 print(summary(lm.log.price_living))
 ```
 
-Data Visualisation
+Before we interpret the intercept and the second coefficient, the slope, we exponentiate the values. The results are: For the intercept exp(8.17522)= 3551.84 and the slope exp(0.9028)=2.47
 
-Plot Price ~ Rooms
+Therefore the interpretation would be: With a livingsspace of 0 the price would be 3551.84 EURO and with each unit increase of the livingspace the price increase by 2.47 EURO which does not make much sense.
+
+Anyway the p-value is very small therfore we have a string evidence that the slope for livingspace ist not flat.
+
+We therefore examine the data set graphically and consider again "Price" as response variable but as predictor "Rooms" and we fit the model again with a simple linear regression.
 
 ```` {r}
 library(ggplot2)
@@ -111,13 +119,13 @@ ggplot(data, aes(log(Price), log(Lot))) + geom_point() + geom_smooth(method = lm
 #print(summary(lm.log.Lot_Price))
 ```
 
-
+Now we are testing the effect of the categorical variable "Type" and visualize them first with a boxplot with and one without outliers.
 ```{r}
 
 # use ggplot instead - to do
-#par(mfrow=c(2,1))
-#boxplot(log(data$Price) ~ Type, main = 'Price ~ Type plotted with outliers')
-#boxplot(log(data$Price) ~ Type, main = 'Price ~ Type plotted WITHOUT outliers', outline=FALSE)
+par(mfrow=c(2,1))
+boxplot(log(data$Price) ~ data$Type, main = 'Price ~ Type plotted with outliers')
+boxplot(log(data$Price) ~ data$Type, main = 'Price ~ Type plotted WITHOUT outliers', outline=FALSE)
 ```
 
 
