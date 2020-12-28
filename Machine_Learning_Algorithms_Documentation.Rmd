@@ -295,7 +295,11 @@ ggplot(data = data,
               se = FALSE,
               method.args = list(family = "binomial")) 
 ```
+# WEEK 4
 
+## SVM
+
+**Test- and Train Set**
 
 
 
@@ -320,6 +324,10 @@ trainColNum <- grep("train", names(df))
 trainset <- trainset[, -trainColNum]
 testset <- testset[, -trainColNum]
 
+```
+
+**Linear Model**
+```{r}
 
 svm_model<- 
     svm(Rooms ~ log(Price), data = trainset, type = "C-classification", 
@@ -347,6 +355,8 @@ pred_test <- predict(svm_model, testset)
 mean(pred_test == testset$Rooms)
 ```
 
+
+**Polynomial Model**
 ```{r}
 
 svm_model2<- 
