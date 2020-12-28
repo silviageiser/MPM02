@@ -1,27 +1,27 @@
 ---
-output:
-  html_document: default
-  'html_document: default': default
----
-```` Markdown
----
 title: "Machine_Learning_Algorithms_Documentation"
 author: "Geiser, Gruen, Hefti, Kuster"
 date: "11/11/2020"
-output: html_document: default
+output:
+  html_document:
+    toc: true
+    toc_depth: 2
+    number_sections: true
+    toc_float: true
 ---
 
 
 
-**Machine Learning Algorithms**
+# Machine Learning Algorithms
 
-**Dataset - German Housing Data**
+## Dataset - German Housing Data
 
 We cleaned the origin data set: Variable rooms, bathrooms, bedrooms, floors, garages, Year_built, Year_renovated changed from decimal to integer.
 
 We created a subset with buildings up to 20 rooms for our analysis.
 
-##Load of the cleaned dataset
+**Load of the cleaned dataset**
+
 
 ```{r, include=TRUE}
 # load dataset
@@ -37,14 +37,16 @@ str(data)
 colnames(data)
 ```
 
-##We start with the analysis of the distribution of the variables:
+# Visualization and analysis of variables
+
+We start with the analysis of the distribution of the variables:
 
 - Price
 - Livingspace
 - Rooms
 
-#Some Variable are highly right skewed.
-#Price, Living_space, lot, rooms and more. We will use the logtransformed data in our analysis.
+Some Variable are highly right skewed.
+Price, Living_space, lot, rooms and more. We will use the logtransformed data in our analysis.
 
 ``` {r}
 d <- density(data$Price)
@@ -60,11 +62,11 @@ hist(log(data$Rooms))
 ```
 
 
-**WEEK 1**
+# WEEK 1
 
-**Linear Models**
+## Linear Models
 
-Simple linear regression
+**Simple linear regression**
 
 Data Visualisation
 
@@ -133,9 +135,9 @@ boxplot(log(data$Price) ~ data$Type, main = 'Price ~ Type plotted WITHOUT outlie
 lm.type_rooms <- lm(Price ~ Type, data = data)
 summary(lm.type_rooms)
 ```
-**WEEK 2**
+# WEEK 2
 
-**model nonlinearity**
+## model nonlinearity
 
 Polynomials
 Graphical analysis
@@ -191,11 +193,11 @@ plot(gam.2, residuals = TRUE, select = 1)
 ```
 
 
-**WEEK 3**
+# WEEK 3
 
-**GLM**
+## GLM
 
-Possion Model
+**Possion Model**
 
 ```{r}
 glm.rooms <- glm(Rooms ~ Type,
@@ -293,6 +295,90 @@ ggplot(data = data,
               se = FALSE,
               method.args = list(family = "binomial")) 
 ```
+
+
+
+
+```{r}
+#str(data)
+library(e1071)
+
+df <- data
+
+#split train and test data in an 80/20 proportion
+df[, "train"] <- ifelse(runif(nrow(df))<0.8, 1, 0)
+
+#assign training rows to data frame trainset
+trainset <- df[df$train == 1, ]
+#assign test rows to data frame testset
+testset <- df[df$train == 0, ]
+
+#find index of "train" column
+trainColNum <- grep("train", names(df))
+
+#remove "train" column from train and test dataset
+trainset <- trainset[, -trainColNum]
+testset <- testset[, -trainColNum]
+
+
+svm_model<- 
+    svm(Rooms ~ log(Price), data = trainset, type = "C-classification", 
+        kernel = "linear", scale = FALSE)
+
+svm_model
+
+```
+
+```{r}
+#list components of model
+names(svm_model)
+
+#list values of the SV, index and rho
+# svm_model$SV
+# svm_model$index
+# svm_model$rho
+
+#compute training accuracy
+pred_train <- predict(svm_model, trainset)
+mean(pred_train == trainset$Rooms)
+
+#compute test accuracy
+pred_test <- predict(svm_model, testset)
+mean(pred_test == testset$Rooms)
+```
+
+```{r}
+
+svm_model2<- 
+    svm(factor(Energy_efficiency_class) ~ log(Price), data = trainset, type = "C-classification", 
+        kernel = "polynomial", cost = 0.01, degree = 2)
+
+svm_model2
+
+#measure training and test accuracy
+pred_train2 <- predict(svm_model2, trainset)
+mean(pred_train2 == trainset$Energy_efficiency_class)
+pred_test2 <- predict(svm_model2, testset)
+mean(pred_test2 == testset$Energy_efficiency_class)
+
+#plot
+#load ggplot
+library(ggplot2)
+
+#build scatter plot of training dataset
+scatter_plot <- ggplot(data = trainset, aes(x = log(Price), y = Energy_efficiency_class, color = Energy_efficiency_class)) + 
+    geom_point() + 
+    scale_color_manual(values = c("red", "blue"))
+ 
+#add plot layer marking out the support vectors 
+layered_plot <- 
+    scatter_plot + geom_point(data = trainset[svm_model$index, ], aes(x = log(Price), y = Energy_efficiency_class), color = "purple", size = 4, alpha = 0.5)
+
+#display plot
+#layered_plot
+```
+
+
 
 
 
