@@ -12,7 +12,6 @@ date: "07/01/2021"
 
 **Dataset - German Housing Data**
 
-
 Load cleaned dataset
 ```{r}
 data <- read.csv('german_housing_cleaned.csv',header =T, encoding='UTF-8')
