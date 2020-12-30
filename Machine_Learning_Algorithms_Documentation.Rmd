@@ -234,6 +234,9 @@ data[, "wt3"] <- bin_data(data$Price, bins=4, binType = "explicit")
 
 # Or if you'd rather define the bins yourself
 data[, "wt4"] <- bin_data(data$Price, bins=c(-Inf, 250, 322, Inf), binType = "explicit")
+# Resulting bins are equally spaced from min to max
+data[, "wt5"] <-bin_data(data$Price, bins=c(-Inf, 600000, Inf), binType = "explicit")
+
 head(data)
 ```
 
@@ -266,7 +269,7 @@ Binary Model
 Let’s fit a binary model
 
 ``` {r}
-data$MillionYes <- ifelse(data$Price > 1000000, 1, 0)
+data$MillionYes <- ifelse(data$Price > 1000000, 1, -1)
 data$MillionYes
 
 ggplot(data = data,
@@ -292,18 +295,186 @@ Let's try something else
 
 
 
+**WEEK 4**
+
+**Support Vector Machines**
+```{r}
+data$wt5 <- factor(ifelse(data$wt5 > 600000, 1, -1))
+data['MillionYes'] = as.factor(data$MillionYes)
+str(data)
+
+```
+
+``` {r}
+# Load ggplot2
+library(ggplot2)
+
+# Plot x2 vs. x1, colored by y
+scatter_plot<- ggplot(data = data, aes(x = Living_space, y = Year_built, color = wt2
+                                       
+                              )) + 
+    # Add a point layer
+    geom_point() + 
+    scale_color_manual(values = c("red", "blue","green", "purple")) +
+    # Specify equal coordinates
+    coord_equal()
+ 
+scatter_plot  
+```
+```{r}
+
+x1 <- scales::rescale(data$Living_space, to=c(0,1))
+x2 <- scales::rescale(data$Year_built, to=c(0,1))
+x3 <- scales::rescale(data$Rooms, to=c(0,1))
+x4 <- scales::rescale(data$Lot, to=c(0,1))
+
+```
+
+``` {r}
+# Load ggplot2
+library(ggplot2)
+
+# Plot x2 vs. x1, colored by y
+scatter_plot<- ggplot(data = data, aes(x = x1, y = x2, color = wt2
+                                       
+                              )) + 
+    # Add a point layer
+    geom_point() + 
+    scale_color_manual(values = c("red", "blue","green", "purple")) +
+    # Specify equal coordinates
+    coord_equal()
+ 
+scatter_plot  
+```
 
 
 
+``` {r}
+# Load ggplot2
+library(ggplot2)
+
+# Plot x2 vs. x1, colored by y
+scatter_plot<- ggplot(data = data, aes(x = x1, y = x2, color = MillionYes
+                                       
+                              )) + 
+    # Add a point layer
+    geom_point() + 
+    scale_color_manual(values = c("red", "blue")) +
+    # Specify equal coordinates
+    coord_equal()
+ 
+scatter_plot  
+```
+
+
+``` {r}
+# Load ggplot2
+library(ggplot2)
+
+# Plot x2 vs. x1, colored by y
+scatter_plot<- ggplot(data = data, aes(x = x1, y = x3, color = wt5
+                                       
+                              )) + 
+    # Add a point layer
+    geom_point() + 
+    scale_color_manual(values = c("red", "blue")) +
+    # Specify equal coordinates
+    coord_equal()
+ 
+scatter_plot  
+```
+
+``` {r}
+# Load ggplot2
+library(ggplot2)
+
+# Plot x2 vs. x1, colored by y
+scatter_plot<- ggplot(data = data, aes(x = x1, y = x4, color = wt5
+                                       
+                              )) + 
+    # Add a point layer
+    geom_point() + 
+    scale_color_manual(values = c("red", "blue")) +
+    # Specify equal coordinates
+    coord_equal()
+ 
+scatter_plot  
+```
+
+```{R}
+testdf <- data.frame(x2,x1,data$MillionYes)
+print(testdf)
+
+```
+
+```{r}
+install.packages("e1071")
+library(e1071)
+
+```
+
+```{r}
+
+# Print average accuracy and standard deviation
+accuracy <- rep(NA, 1)
+set.seed(2)
+
+# Calculate accuracies for 100 training/test partitions
+for (i in 1:1){
+    testdf[, "train"] <- ifelse(runif(nrow(testdf)) < 0.8, 1, 0)
+    trainset <- testdf[testdf$train == 1, ]
+    testset <- testdf[testdf$train == 0, ]
+    trainColNum <- grep("train", names(trainset))
+    trainset <- trainset[, -trainColNum]
+    testset <- testset[, -trainColNum]
+    svm_model <- svm(data.MillionYes ~ ., data = trainset, type = "C-classification", kernel = "linear")
+    pred_test <- predict(svm_model, testset)
+    accuracy[i] <- mean(pred_test == testset$data.MillionYes)
+}
+
+# Print average accuracy and standard deviation
+mean(accuracy)
+sd(accuracy)
 
 
 
+```
+```{r}
+plot(svm_model,testset)
+```
 
 
 
+```{r}
+
+# Print average accuracy and standard deviation
+accuracy <- rep(NA, 10)
+set.seed(2)
+
+# Calculate accuracies for 100 training/test partitions
+for (i in 1:10){
+    testdf[, "train"] <- ifelse(runif(nrow(testdf)) < 0.8, 1, 0)
+    trainset <- testdf[testdf$train == 1, ]
+    testset <- testdf[testdf$train == 0, ]
+    trainColNum <- grep("train", names(trainset))
+    trainset <- trainset[, -trainColNum]
+    testset <- testset[, -trainColNum]
+    svm_model <- svm(data.MillionYes ~ ., data = trainset, type = "C-classification", kernel = "radial")
+    pred_test <- predict(svm_model, testset)
+    accuracy[i] <- mean(pred_test == testset$data.MillionYes)
+}
+
+# Print average accuracy and standard deviation
+mean(accuracy)
+sd(accuracy)
 
 
 
+```
+
+```{r}
+plot(svm_model,testset)
+```
 
 
 
