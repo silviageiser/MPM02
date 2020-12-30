@@ -1,0 +1,344 @@
+---
+output:
+  html_document: default
+---
+title: "Machine_Learning_Algorithms_Documentation"
+author: "Geiser, Gruen, Hefti, Kuster"
+date: "07/01/2021"
+---
+
+
+**Machine Learning Algorithms**
+
+**Dataset - German Housing Data**
+
+
+Load cleaned dataset
+```{r}
+data <- read.csv('german_housing_cleaned.csv',header =T, encoding='UTF-8')
+head(data)
+```
+
+
+Inspect variables
+```{r}
+str(data)
+summary(data)
+colnames(data)
+```
+
+
+Distribution of the variables: 'Price', 'Living_space', 'Rooms' and 'Lot'
+```{r}
+par(mfrow = c(2,2))
+
+#Price
+plot(density(data$Price))
+
+#Living_space
+plot(density(data$Living_space))
+
+#Rooms
+hist(data$Rooms)
+
+#Lot
+plot(density(data$Lot))
+```
+Result: Right skewed
+
+
+Log Transformation of the variables 'Price', 'Living_space', 'Rooms', 'Lot' for a nearly normal distribution
+``` {r}
+par(mfrow = c(2,2))
+
+#Price
+price.log <- density(log(data$Price))
+plot(price.log)
+
+#Living_space
+living.log <- density(log(data$Living_space))
+plot(living.log)
+
+#Rooms
+rooms.log <- log(data$Rooms)
+hist(rooms.log)
+
+#Lot
+lot.log <- density(log(data$Lot))
+plot(lot.log)
+```
+
+
+**WEEK 1**
+
+**Linear Models**
+
+Data Visualisations and Simple Linear Regressions
+```{r, message=F, error=F}
+options(scipen=999) #block scientific notation
+library(ggplot2)
+attach(data)
+any(is.na(Price))
+any(is.na(Living_space))
+any(is.na(Rooms))
+```
+
+Price ~ Living_space
+```{r, message=F}
+#Living_space
+ggplot(data, aes(log(Living_space), log(Price))) + geom_point() + geom_smooth(method = lm, se = T, color = 'red')
+
+lm.log.price_living <- lm(log(Price) ~ log(Living_space))
+summary(lm.log.price_living)
+```
+
+Price ~ Rooms
+```{r,message=F}
+#Rooms
+ggplot(data, aes(Rooms,Price)) + geom_point()+ geom_smooth(method = lm, se = F, color= 'red') +
+scale_x_continuous(breaks = rep(1:20,len=20))
+
+lm.log.price_rooms <- lm(log(Price) ~ log(Rooms))
+summary(lm.log.price_rooms)
+```
+
+
+Boxplots for different 'Types' with Price and linear regression
+```{r}
+types.box.with_outlier <- ggplot(data, aes(x=Type, y=log(Price))) + geom_boxplot(outlier.colour = 'red')+ theme(axis.text.x = element_text(angle = 90)) + ggtitle('Type, Price with outliers in red')
+plot(types.box.with_outlier)
+
+types.box.no_outlier <- ggplot(data, aes(x=Type, y=log(Price))) + geom_boxplot(outlier.shape = NA)+ theme(axis.text.x = element_text(angle = 90)) + ggtitle('Type, Price without outliers')
+plot(types.box.no_outlier)
+
+lm.type <- lm(log(Price) ~ Type)
+summary(lm.type)
+
+
+```
+
+Testing categorical variable (Furnishing_quality)and comparing by F-test
+```{r}
+types.box.with_outlier <- ggplot(data, aes(x=Furnishing_quality, y=log(Price))) + geom_boxplot(outlier.colour = 'red')+ theme(axis.text.x = element_text(angle = 90)) + ggtitle('Furnishing Quality, Price with outliers in red')
+plot(types.box.with_outlier)
+
+types.box.no_outlier <- ggplot(data, aes(x=Furnishing_quality, y=log(Price))) + geom_boxplot(outlier.shape = NA)+ theme(axis.text.x = element_text(angle = 90)) + ggtitle('Furnishing Quality, Price without outliers')
+plot(types.box.no_outlier)
+
+lm.furnishing <- lm(log(Price) ~ Furnishing_quality)
+summary(lm.furnishing)
+
+lm.furnishing1 <- lm(log(Price) ~ 1)
+summary(lm.furnishing1)
+
+anova(lm.furnishing1, lm.furnishing)
+
+```
+
+Adding more categorical variables to the testing above --> Multiple linear regression?
+```{r}
+
+lm.furnishing2 <- update(lm.furnishing,. ~ . + Type + Condition)
+formula(lm.furnishing2)
+drop1(lm.furnishing2, test = "F")
+
+```
+
+
+
+**WEEK 2**
+
+**model nonlinearity**
+
+Polynomials
+Graphical analysis
+```{r, message = F, error = F}
+library(mgcv)
+attach(data)
+library(ggplot2)
+``` 
+
+```{r, message = F}
+#log(Price) ~ Rooms
+gg.PriceRooms <- ggplot(data,
+mapping = aes(y = log(Price),
+x = Rooms)) +
+geom_point()
+gg.PriceRooms +
+geom_smooth() +
+scale_x_continuous(breaks = rep(1:20,len=20))
+
+
+gam.1 <- gam(log(Price) ~ s(Rooms))
+summary(gam.1)
+
+
+plot(gam.1, residuals = TRUE, cex = 2)
+```
+
+log(Prices) ~ log(Rooms)
+```{r, message = F}
+#log(Rooms)
+gg.PriceRooms <- ggplot(data,
+mapping = aes(y = log(Price),
+x = log(Rooms))) +
+geom_point()
+gg.PriceRooms +
+geom_smooth() 
+
+gam.2 <- gam(log(Price) ~ s(Rooms))
+summary(gam.2)
+plot(gam.2, residuals = TRUE, cex = 2)
+
+
+gg.PriceLiving <- ggplot(data,
+mapping = aes(y = log(Price),
+x = log(Living_space))) +
+geom_point()
+gg.PriceLiving +
+geom_smooth()
+
+gam.3 <- gam(log(Price) ~ log(Living_space) +
+s(Rooms) + s(Garages),
+data = data)
+summary(gam.3)
+plot(gam.3, residuals = TRUE, select = 1)
+```
+
+
+```{r, message = F}
+gg.LotPrice <- ggplot(data = data,
+mapping = aes(y = log(Lot),
+x = log(Price))) +
+geom_point()
+gg.LotPrice +
+geom_smooth(method = 'gam')
+```
+
+
+
+**WEEK 3**
+
+**GLM**
+
+Possion Model
+
+```{r}
+glm.rooms <- glm(Rooms ~ Type,
+family = "poisson",
+data = data)
+
+summary(glm.rooms)
+
+```
+
+```{r}
+set.seed(99)
+sim.data.rooms.Poisson <- simulate(glm.rooms)
+##
+NROW(sim.data.rooms.Poisson)
+
+head(sim.data.rooms.Poisson)
+tail(sim.data.rooms.Poisson)
+
+```
+Visualisierung ;)
+``` {r}
+ggplot(mapping = aes(y = sim.data.rooms.Poisson$sim_1,
+x = data$Type)) +
+geom_boxplot() +
+geom_hline(yintercept = 0) +
+ylab("simulated no. of rooms\n(assuming Poisson dist)") +
+xlab("type")
+```
+
+
+
+``` {r}
+
+
+#install.packages('mltools')
+library(mltools)
+
+# Resulting bins have an equal number of observations in each group
+data[, "wt2"] <- bin_data(data$Price, bins=4, binType = "quantile")
+
+# Resulting bins are equally spaced from min to max
+data[, "wt3"] <- bin_data(data$Price, bins=4, binType = "explicit")
+
+# Or if you'd rather define the bins yourself
+data[, "wt4"] <- bin_data(data$Price, bins=c(-Inf, 250, 322, Inf), binType = "explicit")
+head(data)
+```
+
+``` {r}
+glm.roomswt2 <- glm(Rooms ~ wt2,
+family = "poisson",
+data = data)
+
+summary(glm.roomswt2)
+```
+``` {r}
+set.seed(99)
+sim.data.rooms.Poissonwt2 <- simulate(glm.roomswt2)
+##
+NROW(sim.data.rooms.Poissonwt2)
+
+head(sim.data.rooms.Poissonwt2)
+tail(sim.data.rooms.Poissonwt2)
+```
+``` {r}
+library(ggplot2)
+ggplot(mapping = aes(y = sim.data.rooms.Poissonwt2$sim_1,
+x = data$wt2)) +
+geom_boxplot() +
+geom_hline(yintercept = 0) +
+ylab("simulated no. of rooms\n(assuming Poisson dist)") +
+xlab("Groups")
+```
+Binary Model
+Let’s fit a binary model
+
+``` {r}
+data$MillionYes <- ifelse(data$Price > 1000000, 1, 0)
+data$MillionYes
+
+ggplot(data = data,
+mapping = aes(y = MillionYes,
+x = log(Living_space))) +
+geom_point()
+```
+Let’s fit a logistic regression model and add fit to the this graph
+
+``` {r}
+ggplot(data = data,
+       mapping = aes(y = MillionYes,
+                     x = log(Living_space))) + 
+  geom_point() +
+  geom_smooth(method = "glm", 
+              se = FALSE,
+              method.args = list(family = "binomial")) 
+```
+
+
+
+Let's try something else
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
