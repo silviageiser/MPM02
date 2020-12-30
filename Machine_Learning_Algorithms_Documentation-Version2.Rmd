@@ -116,8 +116,7 @@ summary(lm.type)
 
 
 ```
-
-Testing categorical variable (Furnishing_quality)and comparing by F-test
+Testing categorical variable (Furnishing_quality)and comparing by F-test 
 ```{r}
 types.box.with_outlier <- ggplot(data, aes(x=Furnishing_quality, y=log(Price))) + geom_boxplot(outlier.colour = 'red')+ theme(axis.text.x = element_text(angle = 90)) + ggtitle('Furnishing Quality, Price with outliers in red')
 plot(types.box.with_outlier)
