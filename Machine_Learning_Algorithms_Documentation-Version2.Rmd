@@ -1,25 +1,37 @@
 ---
-output:
-  html_document: default
----
 title: "Machine_Learning_Algorithms_Documentation"
 author: "Geiser, Gruen, Hefti, Kuster"
 date: "07/01/2021"
+output:
+  word_document:
+    toc: yes
+    toc_depth: '2'
+  html_document:
+    toc: yes
+    toc_depth: 2
+    number_sections: yes
+    toc_float: yes
 ---
 
 
-**Machine Learning Algorithms**
 
-**Dataset - German Housing Data**
+# Machine Learning Algorithms
 
-Load cleaned dataset
+## Dataset - German Housing Data
+
+We cleaned the origin data set: Variable rooms, bathrooms, bedrooms, floors, garages, Year_built, Year_renovated changed from decimal to integer.
+
+We created a subset with buildings up to 20 rooms for our analysis.
+
+**Load of the cleaned dataset**
+
 ```{r}
 data <- read.csv('german_housing_cleaned.csv',header =T, encoding='UTF-8')
 head(data)
 ```
+# Analysis of variables
 
-
-Inspect variables
+**Inspection of all variables**
 ```{r}
 str(data)
 summary(data)
@@ -27,7 +39,7 @@ colnames(data)
 ```
 
 
-Distribution of the variables: 'Price', 'Living_space', 'Rooms' and 'Lot'
+Analysis of the distribution of the variables: 'Price', 'Living_space', 'Rooms' and 'Lot'
 ```{r}
 par(mfrow = c(2,2))
 
@@ -43,10 +55,10 @@ hist(data$Rooms)
 #Lot
 plot(density(data$Lot))
 ```
-Result: Right skewed
+Result: The variables are right skewed
 
 
-Log Transformation of the variables 'Price', 'Living_space', 'Rooms', 'Lot' for a nearly normal distribution
+Therefore we will use the Log Transformation of the variables 'Price', 'Living_space', 'Rooms', 'Lot' to get a nearly normal distribution
 ``` {r}
 par(mfrow = c(2,2))
 
@@ -68,11 +80,14 @@ plot(lot.log)
 ```
 
 
-**WEEK 1**
+# WEEK 1
 
-**Linear Models**
+## Linear Models
 
-Data Visualisations and Simple Linear Regressions
+**Simple linear regression**
+
+
+the variables Price, Living_space and Rooms are checked for na values
 ```{r, message=F, error=F}
 options(scipen=999) #block scientific notation
 library(ggplot2)
@@ -82,7 +97,10 @@ any(is.na(Living_space))
 any(is.na(Rooms))
 ```
 
-Price ~ Living_space
+Data Visualisation
+
+We plot the response variable "Price" against the predictor "Living_Space" to get a first impression and grahical analysis.
+
 ```{r, message=F}
 #Living_space
 ggplot(data, aes(log(Living_space), log(Price))) + geom_point() + geom_smooth(method = lm, se = T, color = 'red')
@@ -90,8 +108,16 @@ ggplot(data, aes(log(Living_space), log(Price))) + geom_point() + geom_smooth(me
 lm.log.price_living <- lm(log(Price) ~ log(Living_space))
 summary(lm.log.price_living)
 ```
+It seems to be a positive relationship between these two variables. More livingspace seems to have a higher price. So we fit a simple regression model to the data.
 
-Price ~ Rooms
+Before we interpret the intercept and the second coefficient, the slope, we exponentiate the values. The results are: For the intercept exp(8.17522)= 3551.84 and the slope exp(0.9028)=2.47
+
+Therefore the interpretation would be: With a livingspace of 0 the price would be 3551.84 EURO and with each unit increase of the livingspace the price increase by 2.47 EURO which does not make much sense.
+
+Anyway the p-value is very small therefore we have a string evidence that the slope for livingspace is not flat.
+
+In an next step we examine the data set graphically and consider again "Price" as response variable but as predictor "Rooms" and we fit the model again with a simple linear regression.
+
 ```{r,message=F}
 #Rooms
 ggplot(data, aes(Rooms,Price)) + geom_point()+ geom_smooth(method = lm, se = F, color= 'red') +
@@ -101,8 +127,7 @@ lm.log.price_rooms <- lm(log(Price) ~ log(Rooms))
 summary(lm.log.price_rooms)
 ```
 
-
-Boxplots for different 'Types' with Price and linear regression
+Now we are testing the effect of the categorical variable "Type" and visualize them first with a boxplot with and one without outliers.
 ```{r}
 types.box.with_outlier <- ggplot(data, aes(x=Type, y=log(Price))) + geom_boxplot(outlier.colour = 'red')+ theme(axis.text.x = element_text(angle = 90)) + ggtitle('Type, Price with outliers in red')
 plot(types.box.with_outlier)
@@ -144,9 +169,10 @@ drop1(lm.furnishing2, test = "F")
 
 
 
-**WEEK 2**
+# WEEK 2
 
-**model nonlinearity**
+## model nonlinearity
+
 
 Polynomials
 Graphical analysis
@@ -214,12 +240,11 @@ geom_smooth(method = 'gam')
 ```
 
 
+# WEEK 3
 
-**WEEK 3**
+## GLM
 
-**GLM**
-
-Possion Model
+**Possion Model**
 
 ```{r}
 glm.rooms <- glm(Rooms ~ Type,
