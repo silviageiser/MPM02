@@ -3,14 +3,14 @@ title: "Machine_Learning_Algorithms_Documentation"
 author: "Geiser, Gruen, Hefti, Kuster"
 date: "07/01/2021"
 output:
-  word_document:
-    toc: yes
-    toc_depth: '2'
   html_document:
     toc: yes
     toc_depth: 2
     number_sections: yes
     toc_float: yes
+  word_document:
+    toc: yes
+    toc_depth: '2'
 ---
 
 
@@ -54,6 +54,9 @@ hist(data$Rooms)
 
 #Lot
 plot(density(data$Lot))
+
+
+
 ```
 Result: The variables are right skewed
 
@@ -87,7 +90,7 @@ plot(lot.log)
 **Simple linear regression**
 
 
-the variables Price, Living_space and Rooms are checked for na values
+the variables Price, Living_space and Rooms are checked for "na" values
 ```{r, message=F, error=F}
 options(scipen=999) #block scientific notation
 library(ggplot2)
@@ -342,6 +345,91 @@ ggplot(data = data,
               se = FALSE,
               method.args = list(family = "binomial")) 
 ```
+
+
+# WEEK 5
+
+## ANN
+
+**neuralnet package**
+
+preparing data for neuralnet
+```{r}
+library(tidyverse)
+library(data.table)
+library(neuralnet)
+library(caret)
+```
+
+```{r}
+str(data)
+
+df <- data.frame(data$Price, data$Living_space, data$Lot, data$Rooms, data$Year_built)
+
+df.dropna <- na.omit(df)
+df.house <- data.table(df.dropna)
+
+any(is.na(df.house))
+str(df.house)
+
+
+```
+
+**Prepare for Training**
+
+```{r}
+set.seed(123)
+indices <- createDataPartition(df.house$data.Price, p = 0.8, list = FALSE)
+train <- df.house %>% slice(indices)
+test <- df.house %>% slice(-indices)
+boxplot(train$data.Price, test$data.Price, df.house %>% sample_frac(0.2) %>% pull(data.Price))
+```
+
+
+
+```{r}
+max <- apply(df.house, 2, max)
+min <- apply(df.house, 2, min)
+df.house_scaled <- as.data.frame(scale(df.house, center = min, scale = max - min))
+train_scaled <- df.house_scaled %>% slice(indices)
+test_scaled <- df.house_scaled %>% slice(-indices)
+```
+
+
+## Fit the Network
+
+```{r}
+set.seed(42)
+housing_net = neuralnet(data.Price ~ data.Living_space + data.Lot + data.Rooms + data.Year_built, train_scaled, hidden = 3 , linear.output = TRUE)
+plot(housing_net)
+```
+
+
+
+```{r}
+pred_scaled <- compute(housing_net, test_scaled %>% select(-data.Price))
+pred <- pred_scaled$net.result * (max(df.house$data.Price) - min(df.house$data.Price)) + min(df.house$data.Price)
+#pred
+```
+
+```{r}
+plot(test$data.Price, pred, col='blue', pch=16, ylab = "predicted Price NN", xlab = "real Price")
+abline(0,1)
+```
+And calculate the RMSE
+```{r}
+sqrt(mean((test$data.Price - pred)^2))
+```
+
+Let's try something else
+
+
+
+
+
+
+
+
 
 
 
