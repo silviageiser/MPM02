@@ -363,16 +363,17 @@ library(caret)
 
 ```{r}
 str(data)
+apply(data,2,function(x) sum(is.na(x)))
 
-df <- data.frame(data$Price, data$Living_space, data$Lot, data$Rooms, data$Year_built)
+df <- data.frame(data$Price, data$Living_space, data$Lot, data$Rooms, data$Year_built, data$Garages)
 
-df.dropna <- na.omit(df)
-df.house <- data.table(df.dropna)
+df.house <- na.omit(df)
 
+#dummy <- dummyVars(" ~ .", data=df.house)
+#df.house <- data.frame(predict(dummy, newdata = df.house)) 
 any(is.na(df.house))
 str(df.house)
-
-
+mean(data$Price)
 ```
 
 **Prepare for Training**
@@ -393,21 +394,24 @@ min <- apply(df.house, 2, min)
 df.house_scaled <- as.data.frame(scale(df.house, center = min, scale = max - min))
 train_scaled <- df.house_scaled %>% slice(indices)
 test_scaled <- df.house_scaled %>% slice(-indices)
+
 ```
 
 
 ## Fit the Network
 
 ```{r}
-set.seed(42)
-housing_net = neuralnet(data.Price ~ data.Living_space + data.Lot + data.Rooms + data.Year_built, train_scaled, hidden = 3 , linear.output = TRUE)
-plot(housing_net)
+n <- names(train_scaled)
+
+f <- as.formula(paste("data.Price ~", paste(n[!n %in% "data.Price"], collapse = " + ")))
+nn <- neuralnet(f,data=train_scaled,hidden=c(5,3),linear.output=T)
+plot(nn)
+
 ```
 
-
-
 ```{r}
-pred_scaled <- compute(housing_net, test_scaled %>% select(-data.Price))
+pred_scaled <- compute(nn, test_scaled %>% select(-data.Price))
+
 pred <- pred_scaled$net.result * (max(df.house$data.Price) - min(df.house$data.Price)) + min(df.house$data.Price)
 #pred
 ```
@@ -421,13 +425,46 @@ And calculate the RMSE
 sqrt(mean((test$data.Price - pred)^2))
 ```
 
-Let's try something else
+
+**caret package **
+
+
+```{r message=FALSE, warning=FALSE}
+
+str(df.house)
+
+set.seed(42)
+tuGrid <- expand.grid(.layer1=c(1:4), .layer2=c(0,2), .layer3=c(0))
+
+trCtrl <- trainControl(
+  method = 'repeatedcv', 
+  number = 5, 
+  repeats = 10, 
+  returnResamp = 'final'
+)
+
+models <- train(
+  x = df.house %>% select(-data.Price),
+  y = df.house_scaled %>% pull(data.Price),
+  method = 'neuralnet', metric = 'RMSE', 
+  linear.output = TRUE,
+  #be careful, does only work on x!
+  preProcess = c('center', 'scale'),
+  tuneGrid = tuGrid,
+  trControl = trCtrl
+)
+```
 
 
 
+```{r}
+plot(models)
+```
 
 
-
+```{r}
+plot(models$finalModel)
+```
 
 
 
