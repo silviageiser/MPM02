@@ -3,14 +3,14 @@ title: "Machine_Learning_Algorithms_Documentation"
 author: "Geiser, Gruen, Hefti, Kuster"
 date: "08/01/2021"
 output:
-  word_document:
-    toc: yes
-    toc_depth: '2'
   html_document:
     toc: yes
     toc_depth: 2
     number_sections: yes
     toc_float: yes
+  word_document:
+    toc: yes
+    toc_depth: '2'
 ---
 
 
@@ -133,6 +133,9 @@ summary(lm.log.price_living)$r.squared
 #adj.r.squared
 summary(lm.log.price_living)$adj.r.squared
 ```
+Note: There is no threshold to define a model fit to be good, however a model that explain all the variability of the data would have an R^2 of 1.
+
+
 
 Linear regression of log(Price) against log(Living_space) including the Type and finding the intercept for the different Types.
 ```{r}
@@ -158,15 +161,13 @@ summary(lm.log.price_living_type)$coefficients
 Result: mostly very significant p-values for Price ~ Living_space and different types. Only TypeCastle and TypeDuplex with non significant values. We can assume that the different types have different impact on the variable Price against Living_space. 
 
 Interpretation of the coefficients of Type variable: 
-Intercept for TypeSingle Dwelling: 7.869463 with Slope: 0.9969080
+Intercept for TypeSingle Dwelling: exp(7.869463) with Slope: exp(0.9969080)
 
 Measures of fit
 ```{r}
 #r.squared
 summary(lm.log.price_living_type)$r.squared
-```
 
-```{r}
 #adj.r.squared
 summary(lm.log.price_living_type)$adj.r.squared
 ```
@@ -186,9 +187,7 @@ Measures of fit
 ```{r}
 #r.squared
 summary(lm.log.price_rooms)$r.squared
-```
 
-```{r}
 #adj.r.squared
 summary(lm.log.price_rooms)$adj.r.squared
 ```
@@ -201,8 +200,8 @@ plot(types.box.with_outlier)
 types.box.no_outlier <- ggplot(data, aes(x=Type, y=log(Price))) + geom_boxplot(outlier.shape = NA)+ theme(axis.text.x = element_text(angle = 90)) + ggtitle('Boxplots of log(Price) against Types without outliers')
 plot(types.box.no_outlier)
 
-lm.type <- lm(log(Price) ~ Type)
-summary(lm.type)
+lm.log.price_type <- lm(log(Price) ~ Type)
+summary(lm.log.price_type)
 ```
 
 Testing categorical variable (Furnishing_quality)and comparing by F-test 
@@ -252,12 +251,117 @@ Measures of fit
 ```{r}
 #r.squared
 summary(lm.interact)$r.squared
-```
 
-```{r}
 #adj.r.squared
 summary(lm.interact)$adj.r.squared
 ```
+
+
+Fitted values
+
+The function fitted() can be used to extract the predicted values for the existing observations
+```{r}
+attach(data)
+#lm.log.price_living
+fitted.price_living <- fitted(lm.log.price_living)
+str(fitted.price_living)
+head(fitted.price_living)
+plot(log(Price)~ log(Living_space), main = 'Model log(Price) ~ log(Living_space)', col = 'navy', pch = 16)
+points(fitted.price_living ~ log(Living_space), col = 'red', pch = 16)
+abline(lm.log.price_living, col = 'yellow', lwd = 2.5)
+
+
+#lm.log.price_rooms
+fitted.price_rooms <- fitted(lm.log.price_rooms)
+str(fitted.price_rooms)
+head(fitted.price_rooms)
+plot(log(Price)~ log(Rooms), main = 'Model log(Price) ~ log(Rooms)', col = 'navy', pch = 16)
+points(fitted.price_rooms ~ log(Rooms), col = 'red', pch = 16)
+abline(lm.log.price_rooms, col = 'yellow', lwd = 2.5)
+```
+
+```{r}
+#add new columns with log transformed variables price, living space and rooms
+data1 <- data
+data1$log.price <- log(Price)
+data1$log.living <- log(Living_space)
+data1$log.rooms <- log(Rooms)
+head(data1)
+```
+
+Residuals of model log(Price) ~ log(Living_space)
+```{r, message = F}
+attach(data1)
+resid.price_living <- resid(lm.log.price_living)
+length(resid.price_living)
+head(resid.price_living)
+
+set.seed(100)
+id <- sample(x = 1:10318, size = 5)
+resid.price_living[id]
+fitted.price_living[id]
+
+plot(log(Price) ~ log(Living_space), main = 'Modellog(Price) ~ log(Living_space)', col = 'navy', pch = 16)
+abline(lm.log.price_living, col = 'green', lwd = 2.5)
+
+points(log(Price) ~ log(Living_space), data = data1[id, ], col = 'red', pch = 4, lwd = 5)
+segments(x0 = data1[id, 'log.living'], x1 = data1[id, 'log.living'],
+         y0 = fitted.price_living[id], y1 = data1[id, 'log.price'], col = 'yellow', lwd = 2)
+```
+
+
+Residuals of model log(Price) ~ log(Rooms)
+```{r, message = F}
+attach(data1)
+resid.price_rooms <- resid(lm.log.price_rooms)
+length(resid.price_rooms)
+head(resid.price_rooms)
+
+set.seed(100)
+id <- sample(x = 1:10318, size = 5)
+resid.price_rooms[id]
+fitted.price_rooms[id]
+
+plot(log(Price) ~ log(Rooms), main = 'Modellog(Price) ~ log(Rooms)', col = 'navy', pch = 16)
+abline(lm.log.price_rooms, col = 'green', lwd = 2.5)
+
+points(log(Price) ~ log(Rooms), data = data1[id, ], col = 'red', pch = 4, lwd = 5)
+segments(x0 = data1[id, 'log.rooms'], x1 = data1[id, 'log.rooms'],
+         y0 = fitted.price_rooms[id], y1 = data1[id, 'log.price'], col = 'yellow', lwd = 3)
+```
+
+
+Predicting values using splitted data set 80:20 ratio
+```{r, message = F}
+#split dataset 
+split80 <- round(nrow(data1)* 0.80)
+train <- data1[1:split80,]
+test <- data1[(split80 + 1):nrow(data1),]
+dim(train)
+dim(test)
+
+#linear regression model
+lm.train <- lm(log.price ~ log.living, data = train)
+summary(lm.train)
+
+#predictions
+pred.new.living <- predict(object = lm.train, newdata = test)
+pred.new.living.CI <- predict(object = lm.train, interval = 'prediction', newdata = test)
+
+#display predictions
+plot(log(Price) ~ log(Living_space), data = data1, main = 'Prediction with Model log(Price) ~ log(Living_space)', col = 'navy', pch = 16)
+points(x = test$log.living, y= pred.new.living, col = 'red', pch = 16, cex = 1.5)
+abline(lm.train, col = 'yellow', lwd = 2.5)
+
+
+plot(log(Price) ~ log(Living_space), data = train, main = 'Prediction with Model log(Price) ~ log(Living_space)', col = 'navy', pch = 16)
+segments(x0 = test$log.living, x1 = test$log.living,
+         y0 = pred.new.living.CI[, 'lwr'], y1 = pred.new.living.CI[, 'upr'], lwd = 2, col = 'green')
+points(x = test$log.living, y= pred.new.living.CI[,'fit'], col = 'red', pch = 16, cex =1.5)
+abline(lm.train, col = 'yellow', lwd = 2.5)
+```
+Interpretation:
+
 
 
 # WEEK 2
