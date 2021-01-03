@@ -80,12 +80,11 @@ lot.log <- density(log(data$Lot))
 plot(lot.log)
 ```
 
-
 # WEEK 1
 
 ## Linear Models
 
-**Data Visualisation and Simple linear regression**
+**Data Visualisation and Linear regression**
 
 
 the variables Price, Living_space and Rooms are checked for na values
@@ -105,7 +104,7 @@ We plot the response variable "Price" against the predictor "Living_Space" to ge
 ggplot(data, aes(log(Living_space), log(Price))) + geom_point() + geom_smooth(method = lm, se = T, color = 'red') + ggtitle('Scatterplot with regression line for log(Price) against log(Living_space)')
 ```
 
-Fitting a Simple Linear regression of log(Price) against log(Living_space)
+Fitting a Simple Linear regression of log(Price) against log(Living_space) and check the coefficients
 ```{r}
 #linear model
 lm.log.price_living <- lm(log(Price) ~ log(Living_space))
@@ -118,19 +117,59 @@ living.coefs
 #p-values
 summary(lm.log.price_living)$coefficients
 ```
+Result: very significant p-values for Price ~ Living_space. We can assume that the variable Living_space has an effect on the dependent variable (Price) with a positive correlation, meaning: if the Living_space parameter increase in value also the Price of the property will increase. 
 
-Linear regression of log(Price) against log(Living_space) and Type
+We interpret the intercept and the second coefficient, the slope, we exponentiate the values. The results are: For the intercept exp(8.17522)= 3551.84 and the slope exp(0.9028)=2.47
+
+Interpretation: It seems to be a positive relationship between these two variables. More livingspace seems to have a higher price. So we fit a simple regression model to the data. With a livingspace of 0 the price would be 3551.84 EURO and with each unit increase of the livingspace the price increase by 2.47 EURO which does not make much sense. The p-value is very small therefore we have a strong evidence that the slope for livingspace is not flat.
+
+Measures of fit
 ```{r}
+#r.squared
+summary(lm.log.price_living)$r.squared
+```
+
+```{r}
+#adj.r.squared
+summary(lm.log.price_living)$adj.r.squared
+```
+
+Linear regression of log(Price) against log(Living_space) including the Type and finding the intercept for the different Types.
+```{r}
+##linear model
 lm.log.price_living_type <- lm(log(Price) ~ log(Living_space) + Type)
 summary(lm.log.price_living_type)
+
+#estimated regression coefficients
+living_type.coefs <- coef(lm.log.price_living_type)
+living_type.coefs
+
+#intercept of Type "NULL"
+notype.coefs <- coef(lm.log.price_living_type)['(Intercept)']
+notype.coefs
+
+#intercept of Type single dwelling
+sgl.dwelling.coefs <- coef(lm.log.price_living_type)['(Intercept)'] + coef(lm.log.price_living_type)['TypeSingle dwelling']
+sgl.dwelling.coefs
+
+#p-values
+summary(lm.log.price_living_type)$coefficients
 ```
-It seems to be a positive relationship between these two variables. More livingspace seems to have a higher price. So we fit a simple regression model to the data.
+Result: mostly very significant p-values for Price ~ Living_space and different types. Only TypeCastle and TypeDuplex with non significant values. We can assume that the different types have different impact on the variable Price against Living_space. 
 
-Before we interpret the intercept and the second coefficient, the slope, we exponentiate the values. The results are: For the intercept exp(8.17522)= 3551.84 and the slope exp(0.9028)=2.47
+Interpretation of the coefficients of Type variable: 
+Intercept for TypeSingle Dwelling: 7.869463 with Slope: 0.9969080
 
-Therefore the interpretation would be: With a livingspace of 0 the price would be 3551.84 EURO and with each unit increase of the livingspace the price increase by 2.47 EURO which does not make much sense.
+Measures of fit
+```{r}
+#r.squared
+summary(lm.log.price_living_type)$r.squared
+```
 
-Anyway the p-value is very small therefore we have a string evidence that the slope for livingspace is not flat.
+```{r}
+#adj.r.squared
+summary(lm.log.price_living_type)$adj.r.squared
+```
 
 
 In an next step we examine the data set graphically and consider again "Price" as response variable but as predictor "Rooms" and we fit the model again with a simple linear regression.
@@ -141,6 +180,17 @@ scale_x_continuous(breaks = rep(1:20,len=20)) + ggtitle('Plot of Price against R
 
 lm.log.price_rooms <- lm(log(Price) ~ log(Rooms))
 summary(lm.log.price_rooms)
+```
+
+Measures of fit
+```{r}
+#r.squared
+summary(lm.log.price_rooms)$r.squared
+```
+
+```{r}
+#adj.r.squared
+summary(lm.log.price_rooms)$adj.r.squared
 ```
 
 Now we are modelling a linear regression with dependent variable 'Price' and the categorical variable "Type" as independent variable. First we visualize the variable 'Type' with a boxplot with and one without outliers.
@@ -174,8 +224,6 @@ summary(anova.furnishing)
 ```
 
 
-**Multiple linear regression**
-
 Adding more categorical variables to the testing above
 ```{r}
 lm.furnishing2 <- update(lm.furnishing,. ~ . + Type + Condition)
@@ -183,10 +231,32 @@ formula(lm.furnishing2)
 drop1(lm.furnishing2, test = "F")
 ```
 
-Check the interaction between variables
+Including the Type-Living_space interaction 
 ```{r}
-lm.interact <- lm(log(Price) ~ Type * Living_space)
+lm.interact <- lm(log(Price) ~ Living_space * Type) # lm(y ~ x1 * x2) equivalent to lm(y ~ x1 + x2 + x1:x2)
 summary(lm.interact)
+
+#coefficients
+interact.coefs <- coef(lm.interact)
+interact.coefs
+
+#p-values
+summary(lm.interact)$coefficients
+
+#Confidence Intervals
+lm.interact.CI <- confint(lm.interact)
+lm.interact.CI
+```
+
+Measures of fit
+```{r}
+#r.squared
+summary(lm.interact)$r.squared
+```
+
+```{r}
+#adj.r.squared
+summary(lm.interact)$adj.r.squared
 ```
 
 
