@@ -1,7 +1,7 @@
 ---
 title: "Machine_Learning_Algorithms_Documentation"
 author: "Geiser, Gruen, Hefti, Kuster"
-date: "07/01/2021"
+date: "08/01/2021"
 output:
   word_document:
     toc: yes
@@ -21,7 +21,8 @@ output:
 
 We cleaned the origin data set: Variable rooms, bathrooms, bedrooms, floors, garages, Year_built, Year_renovated changed from decimal to integer.
 
-We created a subset with buildings up to 20 rooms for our analysis.
+We created a subset with buildings up to 20 rooms for our analysis and rounded .5 room numbers to integers.
+We transformed the categories in the variable Energy_source and Garagetype.
 
 **Load of the cleaned dataset**
 
@@ -39,7 +40,7 @@ colnames(data)
 ```
 
 
-Analysis of the distribution of the variables: 'Price', 'Living_space', 'Rooms' and 'Lot'
+**Analysis of the distribution of the variables: 'Price', 'Living_space', 'Rooms' and 'Lot'**
 ```{r}
 par(mfrow = c(2,2))
 
@@ -84,11 +85,11 @@ plot(lot.log)
 
 ## Linear Models
 
-**Simple linear regression**
+**Data Visualisation and Simple linear regression**
 
 
 the variables Price, Living_space and Rooms are checked for na values
-```{r, message=F, error=F}
+```{r, message=F, error=F, warning=F}
 options(scipen=999) #block scientific notation
 library(ggplot2)
 attach(data)
@@ -97,16 +98,31 @@ any(is.na(Living_space))
 any(is.na(Rooms))
 ```
 
-Data Visualisation
 
 We plot the response variable "Price" against the predictor "Living_Space" to get a first impression and grahical analysis.
-
 ```{r, message=F}
 #Living_space
-ggplot(data, aes(log(Living_space), log(Price))) + geom_point() + geom_smooth(method = lm, se = T, color = 'red')
+ggplot(data, aes(log(Living_space), log(Price))) + geom_point() + geom_smooth(method = lm, se = T, color = 'red') + ggtitle('Scatterplot with regression line for log(Price) against log(Living_space)')
+```
 
+Fitting a Simple Linear regression of log(Price) against log(Living_space)
+```{r}
+#linear model
 lm.log.price_living <- lm(log(Price) ~ log(Living_space))
 summary(lm.log.price_living)
+
+#estimated regression coefficients
+living.coefs <- coef(lm.log.price_living)
+living.coefs
+
+#p-values
+summary(lm.log.price_living)$coefficients
+```
+
+Linear regression of log(Price) against log(Living_space) and Type
+```{r}
+lm.log.price_living_type <- lm(log(Price) ~ log(Living_space) + Type)
+summary(lm.log.price_living_type)
 ```
 It seems to be a positive relationship between these two variables. More livingspace seems to have a higher price. So we fit a simple regression model to the data.
 
@@ -116,37 +132,36 @@ Therefore the interpretation would be: With a livingspace of 0 the price would b
 
 Anyway the p-value is very small therefore we have a string evidence that the slope for livingspace is not flat.
 
-In an next step we examine the data set graphically and consider again "Price" as response variable but as predictor "Rooms" and we fit the model again with a simple linear regression.
 
+In an next step we examine the data set graphically and consider again "Price" as response variable but as predictor "Rooms" and we fit the model again with a simple linear regression.
 ```{r,message=F}
 #Rooms
 ggplot(data, aes(Rooms,Price)) + geom_point()+ geom_smooth(method = lm, se = F, color= 'red') +
-scale_x_continuous(breaks = rep(1:20,len=20))
+scale_x_continuous(breaks = rep(1:20,len=20)) + ggtitle('Plot of Price against Rooms with regression line in red')
 
 lm.log.price_rooms <- lm(log(Price) ~ log(Rooms))
 summary(lm.log.price_rooms)
 ```
 
-Now we are testing the effect of the categorical variable "Type" and visualize them first with a boxplot with and one without outliers.
+Now we are modelling a linear regression with dependent variable 'Price' and the categorical variable "Type" as independent variable. First we visualize the variable 'Type' with a boxplot with and one without outliers.
 ```{r}
-types.box.with_outlier <- ggplot(data, aes(x=Type, y=log(Price))) + geom_boxplot(outlier.colour = 'red')+ theme(axis.text.x = element_text(angle = 90)) + ggtitle('Type, Price with outliers in red')
+types.box.with_outlier <- ggplot(data, aes(x=Type, y=log(Price))) + geom_boxplot(outlier.colour = 'red')+ theme(axis.text.x = element_text(angle = 90)) + ggtitle('Boxplots of log(Price) against Types with outliers in red')
 plot(types.box.with_outlier)
 
-types.box.no_outlier <- ggplot(data, aes(x=Type, y=log(Price))) + geom_boxplot(outlier.shape = NA)+ theme(axis.text.x = element_text(angle = 90)) + ggtitle('Type, Price without outliers')
+types.box.no_outlier <- ggplot(data, aes(x=Type, y=log(Price))) + geom_boxplot(outlier.shape = NA)+ theme(axis.text.x = element_text(angle = 90)) + ggtitle('Boxplots of log(Price) against Types without outliers')
 plot(types.box.no_outlier)
 
 lm.type <- lm(log(Price) ~ Type)
 summary(lm.type)
-
-
 ```
+
 Testing categorical variable (Furnishing_quality)and comparing by F-test 
 ```{r}
-types.box.with_outlier <- ggplot(data, aes(x=Furnishing_quality, y=log(Price))) + geom_boxplot(outlier.colour = 'red')+ theme(axis.text.x = element_text(angle = 90)) + ggtitle('Furnishing Quality, Price with outliers in red')
-plot(types.box.with_outlier)
+furnish.box.with_outlier <- ggplot(data, aes(x=Furnishing_quality, y=log(Price))) + geom_boxplot(outlier.colour = 'red')+ theme(axis.text.x = element_text(angle = 90)) + ggtitle('Boxplots of log(Price) against Furnishing Quality with outliers in red')
+plot(furnish.box.with_outlier)
 
-types.box.no_outlier <- ggplot(data, aes(x=Furnishing_quality, y=log(Price))) + geom_boxplot(outlier.shape = NA)+ theme(axis.text.x = element_text(angle = 90)) + ggtitle('Furnishing Quality, Price without outliers')
-plot(types.box.no_outlier)
+furnish.box.no_outlier <- ggplot(data, aes(x=Furnishing_quality, y=log(Price))) + geom_boxplot(outlier.shape = NA)+ theme(axis.text.x = element_text(angle = 90)) + ggtitle('Boxplots of log(Price) against Furnishing Quality without outliers')
+plot(furnish.box.no_outlier)
 
 lm.furnishing <- lm(log(Price) ~ Furnishing_quality)
 summary(lm.furnishing)
@@ -154,19 +169,25 @@ summary(lm.furnishing)
 lm.furnishing1 <- lm(log(Price) ~ 1)
 summary(lm.furnishing1)
 
-anova(lm.furnishing1, lm.furnishing)
-
+anova.furnishing <- anova(lm.furnishing1, lm.furnishing)
+summary(anova.furnishing)
 ```
 
-Adding more categorical variables to the testing above --> Multiple linear regression?
-```{r}
 
+**Multiple linear regression**
+
+Adding more categorical variables to the testing above
+```{r}
 lm.furnishing2 <- update(lm.furnishing,. ~ . + Type + Condition)
 formula(lm.furnishing2)
 drop1(lm.furnishing2, test = "F")
-
 ```
 
+Check the interaction between variables
+```{r}
+lm.interact <- lm(log(Price) ~ Type * Living_space)
+summary(lm.interact)
+```
 
 
 # WEEK 2
