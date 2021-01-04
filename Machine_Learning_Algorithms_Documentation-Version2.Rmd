@@ -556,7 +556,11 @@ plot(gam.log.price.log.living, residuals = TRUE, select = 1)
 
 ## GLM - Possion Model
 
+
+With the GLM function and the family "possion" we could generalize the Linear model that the right-skewed data Rooms and Type can be followed without log- transformation in the first place.
 ```{r}
+
+#str(data)
 glm.rooms <- glm(Rooms ~ Type,
 family = "poisson",
 data = data)
@@ -564,6 +568,35 @@ data = data)
 summary(glm.rooms)
 
 ```
+
+```{r}
+#Interpretation the coefficients of a Poisson model the inverse, the exponential, is needed due to use link function (log() function)
+exp(coef(glm.rooms)) 
+
+
+```
+
+```{r}
+#to double check and convince ourselves as single house (type) is checked and predicted
+
+library(tidyverse)
+filter(data, Type == "")
+fitted.room <- fitted(glm.rooms)[350]
+fitted.room
+
+specific.room <- data[350,]
+specific.room$Type <- "Bungalow"
+specific.room
+
+pred.specific.room <- predict(glm.rooms,
+                           type = "response",
+                           newdata = specific.room)
+pred.specific.room
+
+fitted.room + exp(coef(glm.rooms)["TypeBungalow"])
+
+```
+This house, according to the model, is expected to have 9.05 Rooms
 
 ```{r}
 set.seed(99)
