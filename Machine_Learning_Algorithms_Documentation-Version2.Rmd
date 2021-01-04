@@ -122,6 +122,7 @@ data1 <- data
 data1$log.price <- log(data1$Price)
 data1$log.living <- log(data1$Living_space)
 data1$log.rooms <- log(data1$Rooms)
+data1$log.lot <- log(data1$Lot)
 ```
 
 # Week 1 - Linear Models
@@ -441,7 +442,6 @@ abline(lm.train, col = 'yellow', lwd = 2.5)
 By including polynomials (e.g. x1 + x1^2) we can model non linear relationships with a Linear Model.
 
 ```{r, message = F, error = F, warning=F}
-library(mgcv)
 library(ggplot2)
 attach(data1)
 ``` 
@@ -455,13 +455,7 @@ gg.log.price_rooms <- ggplot(data1, mapping = aes(y = log(Price),x = Rooms)) + g
 gg.log.price_rooms + geom_smooth() + scale_x_continuous(breaks = rep(1:20,len=20))
 ```
 
-```{r}
-gam.1 <- gam(log(Price) ~ s(Rooms))
-summary(gam.1)
 
-
-plot(gam.1, residuals = TRUE, cex = 2)
-```
 
 log(Prices) ~ log(Rooms) with log transformation
 ```{r, message = F}
@@ -470,11 +464,7 @@ gg.log.price_log.rooms <- ggplot(data1, mapping = aes(y = log.price, x = log.roo
 gg.log.price_log.rooms + geom_smooth() 
 ```
 
-```{r}
-gam.2 <- gam(log(Price) ~ s(Rooms))
-summary(gam.2)
-plot(gam.2, residuals = TRUE, cex = 2)
-```
+
 
 log(Price) ~ log(Living_space)
 ```{r}
@@ -482,34 +472,85 @@ gg.log.price_log.living <- ggplot(data1,mapping = aes(y = log.price, x = log.liv
 gg.log.price_log.living + geom_smooth()
 ```
 
-Quadratic Effects 
-
+Quadratic Effects
 ```{r}
-lm.living.1 <- lm(log.price ~ log.living + log.rooms )
-
+#model with a linear effect for log.living
+lm.living.1 <- lm(log.price ~ log.living + log.rooms)
+summary(lm.living.1)
 ```
 
 ```{r}
-gam.3 <- gam(log(Price) ~ log(Living_space))
-s(Rooms) + s(Garages),
-data = data)
-summary(gam.3)
-plot(gam.3, residuals = TRUE, select = 1)
+#model with a quadratic effect for log.living
+lm.living.2 <- update(lm.living.1, . ~ . + I(log.living^2))
+summary(lm.living.2)
 ```
 
+```{r}
+#test in quadratic
+anova.lm.living <- anova(lm.living.1, lm.living.2)
+summary(anova.lm.living)
+```
+
+```{r}
+#plot
+gg.log.price_log.living + geom_smooth(method = 'lm', formula = y ~poly(x, degree = 2))
+``` 
+
+```{r}
+#model with a quadratic poly
+lm.living.3 <- lm(log.price ~ log.rooms + log.living + poly(log.living, degree = 2))
+summary(lm.living.3)
+```
+
+```{r}
+#model with a cubic poly
+lm.living.4 <- lm(log.price ~ log.rooms + log.living + poly(log.living, degree = 3))
+summary(lm.living.4)
+```
 
 ```{r, message = F, warning=F}
-gg.LotPrice <- ggplot(data = data,
-mapping = aes(y = log(Lot),
-x = log(Price))) +
-geom_point()
-gg.LotPrice +
-geom_smooth(method = 'gam')
+gg.log.lot.log.price <- ggplot(data = data1, mapping = aes(y = log.lot, x = log.price)) + geom_point()
+gg.log.lot.log.price + geom_smooth(method = 'gam')
 ```
 
 ## Regression Splines
+```{r}
+library(splines)
+lm.regression_splines <- lm(log.price ~ bs(log.living, df = 3))
+summary(lm.regression_splines)
+```
+
 
 ## Generalised Additive Models - GAMs
+```{r}
+library(mgcv)
+``` 
+
+GAMs for log(Price) ~ s(Rooms)
+```{r}
+attach(data1)
+gam.log.price.rooms <- gam(log.price ~ s(Rooms))
+summary(gam.log.price.rooms)
+plot(gam.log.price.rooms, residuals = TRUE, cex = 2)
+```
+
+GAMs for log(Price) ~ log(Rooms)
+```{r}
+gam.log.price.log.rooms <- gam(log.price ~ s(log.rooms))
+summary(gam.log.price.log.rooms)
+
+plot(gam.log.price.log.rooms, residuals = TRUE, cex = 2)
+```
+
+GAMs for log(Price) ~ log(Living_space) + s(Rooms) + s(Garages)
+```{r}
+gam.log.price.log.living <- gam(log.price ~ log.living + s(Rooms) + s(Garages))
+summary(gam.log.price.log.living)
+
+plot(gam.log.price.log.living, residuals = TRUE, select = 1)
+```
+
+
 
 # Week 3 - Generalised Linear Models
 
@@ -679,7 +720,6 @@ scatter_plot<- ggplot(data = data, aes(x = x1, y = x2, color = MillionYes
 scatter_plot  
 ```
 
-
 ``` {r}
 # Load ggplot2
 library(ggplot2)
@@ -718,7 +758,7 @@ print(testdf)
 ```
 
 ```{r}
-install.packages("e1071")
+#install.packages("e1071")
 library(e1071)
 ```
 
@@ -764,6 +804,7 @@ for (i in 1:10){
     pred_test <- predict(svm_model, testset)
     accuracy[i] <- mean(pred_test == testset$data.MillionYes)
 }
+
 # Print average accuracy and standard deviation
 mean(accuracy)
 sd(accuracy)
@@ -776,7 +817,6 @@ plot(svm_model,testset)
 
 
 # Week 5 - Neural Networks
-
 
 ## ANN - neuralnet package
 
@@ -804,7 +844,6 @@ mean(data$Price)
 ```
 
 **Prepare for Training**
-
 ```{r}
 set.seed(123)
 indices <- createDataPartition(df.house$data.Price, p = 0.8, list = FALSE)
@@ -821,12 +860,10 @@ min <- apply(df.house, 2, min)
 df.house_scaled <- as.data.frame(scale(df.house, center = min, scale = max - min))
 train_scaled <- df.house_scaled %>% slice(indices)
 test_scaled <- df.house_scaled %>% slice(-indices)
-
 ```
 
 
 ### Fit the Network
-
 ```{r, eval = F}
 n <- names(train_scaled)
 
@@ -854,7 +891,6 @@ sqrt(mean((test$data.Price - pred)^2))
 
 
 ## ANN - caret package
-
 ```{r message=FALSE, warning=FALSE, eval = F}
 
 str(df.house)
@@ -881,12 +917,9 @@ models <- train(
 )
 ```
 
-
-
 ```{r}
 plot(models)
 ```
-
 
 ```{r}
 plot(models$finalModel)
@@ -895,8 +928,10 @@ plot(models$finalModel)
 
 # Week 6 - Agent-based Modelling and Approximate Bayesian Computation
 
-
-
+## Result
+```{r pressure, echo=FALSE, fig.cap="ABM", out.width = '100%'}
+knitr::include_graphics("Rplot.pdf")
+```
 
 
 
