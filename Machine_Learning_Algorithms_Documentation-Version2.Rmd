@@ -159,6 +159,7 @@ living.coefs
 
 #p-values
 summary(lm.log.price_living)$coefficients
+
 ```
 
 Result: very significant p-values for Price ~ Living_space. We can assume that the variable Living_space has an effect on the dependent variable (Price) with a positive correlation, meaning: if the Living_space parameter increase in value also the Price of the property will increase. 
@@ -556,6 +557,7 @@ plot(gam.log.price.log.living, residuals = TRUE, select = 1)
 
 ## GLM - Possion Model
 
+**Count Data**
 
 With the GLM function and the family "possion" we could generalize the Linear model that the right-skewed data Rooms and Type can be followed without log- transformation in the first place.
 ```{r}
@@ -570,35 +572,43 @@ summary(glm.rooms)
 ```
 
 ```{r}
-#Interpretation the coefficients of a Poisson model the inverse, the exponential, is needed due to use link function (log() function)
+#Interpretation the coefficients of a Poisson model the inverse, the exponential, is needed due to use of the link function (log() function)
 exp(coef(glm.rooms)) 
-
 
 ```
 
-```{r}
+The Interpretation of the coefficients are: A house with no Type information has around 7.6 rooms and e.g. Villa has ca. 15.77% more rooms (ca. 8.8 rooms)
+
+```{r, include = T}
 #to double check and convince ourselves as single house (type) is checked and predicted
 
 library(tidyverse)
-filter(data, Type == "")
-fitted.room <- fitted(glm.rooms)[350]
+
+#which(data$Type == "")
+
+#data[99,]
+fitted.room <- fitted(glm.rooms)[99]
 fitted.room
 
-specific.room <- data[350,]
-specific.room$Type <- "Bungalow"
-specific.room
+specific.room <- data[99,]
+specific.room$Type <- "Villa"
+#specific.room
 
 pred.specific.room <- predict(glm.rooms,
                            type = "response",
                            newdata = specific.room)
 pred.specific.room
 
-fitted.room + exp(coef(glm.rooms)["TypeBungalow"])
+fitted.room * exp(coef(glm.rooms)["TypeVilla"])
 
 ```
-This house, according to the model, is expected to have 9.05 Rooms
+This house with no specific Type, according to the model, is expected to have 7.607 Rooms. If we check the number of rooms after setting the Type to e.g. Villa the model expect 8.807 rooms and this is exactly the same number of rooms we get for the fitted room times the exponential estimated for Villa
 
+
+**data simulation from the glm count data model**
 ```{r}
+
+#data simulation from the glm model (glm.rooms)
 set.seed(99)
 sim.data.rooms.Poisson <- simulate(glm.rooms)
 ##
@@ -608,7 +618,9 @@ head(sim.data.rooms.Poisson)
 tail(sim.data.rooms.Poisson)
 
 ```
-Visualisierung ;)
+
+
+**Visualization of the glm count data model**
 ``` {r}
 ggplot(mapping = aes(y = sim.data.rooms.Poisson$sim_1,
 x = data$Type)) +
@@ -617,7 +629,70 @@ geom_hline(yintercept = 0) +
 ylab("simulated no. of rooms\n(assuming Poisson dist)") +
 xlab("type") + theme(axis.text.x = element_text(angle = 90))
 ```
+The results of the simulation seem to agree with those of the boxplot, see for example Type = Villa
 
+
+**GLM with binomial data continious variable**
+
+```{r}
+
+df.glm <- data.frame(data$Price, data$Living_space, data$Year_built)
+
+df.glm <-na.omit(df.glm)
+
+any(is.na(df.glm))
+str(df.glm)
+
+glm.sq.price <- glm(cbind(data.Price, data.Living_space)~ data.Year_built,
+                    family = "binomial",
+                    data = df.glm)
+
+summary(glm.sq.price)
+
+exp(coef(glm.sq.price))
+
+ggplot(data = df.glm,
+       mapping = aes(y = data.Price/data.Living_space,
+                     x = data.Year_built)) + 
+  geom_point() +
+  geom_smooth(method = "glm", 
+              se = FALSE,
+              method.args = list(family = "binomial"))
+
+```
+**GLM with binomial data factor variable**
+
+```{r}
+
+glm.sq.price <- glm(cbind(Price, Living_space)~ State,
+                    family = "binomial",
+                    data = data)
+
+summary(glm.sq.price)
+
+exp(coef(glm.sq.price))
+
+ggplot(data = data,
+       mapping = aes(y = Price/Living_space,
+                     x = State)) + 
+  geom_point() +
+  geom_smooth(method = "glm", 
+              se = FALSE,
+              method.args = list(family = "binomial"))
+
+```
+If we compare the Residual deviance and the corresponding degrees of freedom in the summary output we would expect in an truly Poisson distributed data hat the residual dviance and the degrees of freedom would be approximately the same value. Therefore it could be overdispersed here and we use the "quasibinomial" family.
+
+```{r}
+glm.sq.price <- glm(cbind(Price, Living_space)~ State,
+                    family = "quasibinomial",
+                    data = data)
+
+summary(glm.sq.price)
+
+exp(coef(glm.sq.price))
+```
+The dispersion parameter ist now 109.92, This implies the variance increases faster than linearly. Anyway in this case there is no evidence that the State have an impact on the response variable.
 
 
 ``` {r, warning = F, message = F}
@@ -662,12 +737,11 @@ geom_hline(yintercept = 0) +
 ylab("simulated no. of rooms\n(assuming Poisson dist)") +
 xlab("Groups")
 ```
-
-## GLM - Binary Model
+**GLM - Binary Model**
 
 Let’s fit a binary model
 ``` {r, results = 'hide'}
-data$MillionYes <- ifelse(data$Price > 1000000, 1, -1)
+data$MillionYes <- ifelse(data$Price > 1000000, 1, 0)
 data$MillionYes
 
 ggplot(data = data,
@@ -678,9 +752,13 @@ geom_point()
 Let’s fit a logistic regression model and add fit to the this graph
 
 ``` {r}
-ggplot(data = data,
+glm.binary <- glm(MillionYes ~ Living_space,
+                  family = "binomial",
+                  data = data)
+
+ggplot(data = glm.binary,
        mapping = aes(y = MillionYes,
-                     x = log(Living_space))) + 
+                     x = Living_space)) + 
   geom_point() +
   geom_smooth(method = "glm", 
               se = FALSE,
@@ -897,7 +975,7 @@ test_scaled <- df.house_scaled %>% slice(-indices)
 
 
 ### Fit the Network
-```{r, eval = F}
+```{r}
 n <- names(train_scaled)
 
 f <- as.formula(paste("data.Price ~", paste(n[!n %in% "data.Price"], collapse = " + ")))
@@ -906,7 +984,7 @@ plot(nn)
 
 ```
 
-```{r, eval = F}
+```{r}
 pred_scaled <- compute(nn, test_scaled %>% select(-data.Price))
 
 pred <- pred_scaled$net.result * (max(df.house$data.Price) - min(df.house$data.Price)) + min(df.house$data.Price)
@@ -950,11 +1028,11 @@ models <- train(
 )
 ```
 
-```{r}
+```{r, eval = FALSE}
 plot(models)
 ```
 
-```{r}
+```{r, eval = FALSE}
 plot(models$finalModel)
 ```
 
