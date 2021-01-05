@@ -1041,10 +1041,12 @@ plot(models$finalModel)
 
 ## Result
 ```{r pressure, echo=FALSE, fig.cap="ABM", out.width = '100%'}
-knitr::include_graphics("Rplot.pdf")
+knitr::include_graphics("ABM_1.PNG")
 ```
 
-
+```{r pressure, echo=FALSE, fig.cap="ABM", out.width = '100%'}
+knitr::include_graphics("ABM_2.PNG")
+```
 
 
 
