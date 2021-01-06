@@ -771,8 +771,8 @@ ggplot(data = glm.binary,
 
 # Week 4 - Support Vector Machines
 ```{r}
-data$wt5 <- factor(ifelse(data$wt5 > 600000, 1, -1))
-data['MillionYes'] = as.factor(data$MillionYes)
+data$wt5 <- factor(ifelse(data$Price > 600000, 1, -1))
+data$wt5 = as.factor(data$wt5)
 str(data)
 ```
 
@@ -819,7 +819,7 @@ scatter_plot
 # Load ggplot2
 library(ggplot2)
 # Plot x2 vs. x1, colored by y
-scatter_plot<- ggplot(data = data, aes(x = x1, y = x2, color = MillionYes
+scatter_plot<- ggplot(data = data, aes(x = x1, y = x2, color = wt5
                                        
                               )) + 
     # Add a point layer
@@ -864,7 +864,7 @@ scatter_plot
 ```
 
 ```{R}
-testdf <- data.frame(x2,x1,data$MillionYes)
+testdf <- data.frame(x2,x1,data$wt5)
 print(testdf)
 ```
 
@@ -885,9 +885,9 @@ for (i in 1:1){
     trainColNum <- grep("train", names(trainset))
     trainset <- trainset[, -trainColNum]
     testset <- testset[, -trainColNum]
-    svm_model <- svm(data.MillionYes ~ ., data = trainset, type = "C-classification", kernel = "linear")
+    svm_model <- svm(data.wt5 ~ ., data = trainset, type = "C-classification", kernel = "linear")
     pred_test <- predict(svm_model, testset)
-    accuracy[i] <- mean(pred_test == testset$data.MillionYes)
+    accuracy[i] <- mean(pred_test == testset$data.wt5)
 }
 # Print average accuracy and standard deviation
 mean(accuracy)
@@ -911,9 +911,9 @@ for (i in 1:10){
     trainColNum <- grep("train", names(trainset))
     trainset <- trainset[, -trainColNum]
     testset <- testset[, -trainColNum]
-    svm_model <- svm(data.MillionYes ~ ., data = trainset, type = "C-classification", kernel = "radial")
+    svm_model <- svm(data.wt5 ~ ., data = trainset, type = "C-classification", kernel = "radial")
     pred_test <- predict(svm_model, testset)
-    accuracy[i] <- mean(pred_test == testset$data.MillionYes)
+    accuracy[i] <- mean(pred_test == testset$data.wt5)
 }
 
 # Print average accuracy and standard deviation
@@ -924,6 +924,7 @@ sd(accuracy)
 ```{r}
 plot(svm_model,testset)
 ```
+
 
 
 
