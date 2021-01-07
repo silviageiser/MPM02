@@ -1055,13 +1055,17 @@ plot(models$finalModel)
 # Week 6 - Agent-based Modelling and Approximate Bayesian Computation
 
 ## Result
-```{r, echo=FALSE, fig.cap="ABM", out.width = '100%'}
+# Week 6 - Agent-based Modelling and Approximate Bayesian Computation
+
+## Result
+```{r pressure, echo=FALSE, fig.cap="ABM_1", out.width = '100%'}
 knitr::include_graphics("ABM_1.PNG")
 ```
 
-```{r pressure, echo=FALSE, fig.cap="ABM", out.width = '100%'}
+```{r pressure, echo=FALSE, fig.cap="ABM_2", out.width = '100%'}
 knitr::include_graphics("ABM_2.PNG")
 ```
+
 
 
 
