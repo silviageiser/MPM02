@@ -58,6 +58,8 @@ Levels of the variable Energy_source and Garagetype transformed.
 
 **Load of the cleaned dataset**
 
+Read in the data & have a short glance with the head() function to get an idea of the dataset
+
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
@@ -68,6 +70,9 @@ head(data)
 ```
 
 **Inspection of all variables**
+
+The dataset contains 10'318 observations with 20 variables (containing continuous, categorical variables as well as count data)
+With the apply() function the amount of NA values for each variable can be checked in one view --> i.e. the variables Bedrooms, Year_renovated, Bathrooms, Floors, Year-built and Garages contain NA-values. This has to be considered through out the further analysis.
 ```{r, eval=FALSE}
 str(data)
 summary(data)
@@ -77,6 +82,7 @@ apply(data,2,function(x) sum(is.na(x)))
 
 
 **Analysis of the distribution of the variables: 'Price', 'Living_space', 'Rooms' and 'Lot'**
+Firstly we want to find out the distribution of the numeric variables. As seen below the variables 'Price', 'Living_space', 'Rooms', 'Lot' have a right skewed distribution and therefore have to be transformed in the next step.
 ```{r}
 par(mfrow = c(2,2))
 
@@ -92,8 +98,6 @@ hist(data$Rooms)
 #Lot
 plot(density(data$Lot))
 ```
-Result: The variables are right skewed
-
 
 **Log Transformation of variables**
 
@@ -119,6 +123,8 @@ plot(lot.log)
 ```
 
 **Add new columns with log transformed variables price, living space and rooms**
+
+In order to easify access to the log transformed variables new columns are created.
 ```{r}
 data1 <- data
 data1$log.price <- log(data1$Price)
@@ -140,7 +146,8 @@ attach(data)
 ```
 
 ## Scatterplot with regression line for log(Price) against log(Living_space)
-We plot the response variable "Price" against the predictor "Living_Space" to get a first impression and grahical analysis.
+
+We plot the response variable "Price" against the predictor "Living_Space" to get a first impression and grahical analysis. The plot displays that there is may a positive correlation between the two variables. We further investigate this by a fitting a simple linear regression.
 
 ```{r, message=F}
 #Living_space
@@ -148,6 +155,8 @@ ggplot(data1, aes(log.living, log.price)) + geom_point() + geom_smooth(method = 
 ```
 
 ## Fitting a Simple Linear regression of log(Price) against log(Living_space) and check the coefficients
+
+The p-value indicates a strong effect of the living_space on the response variable price (i.e. by each unit of living_space the price increases by 0.90280). This seems to be valid as in real life house pricing also depends upon the amount of living space. As only one predictor has been added the R2 and the adjusted R-Squared both result in 0.27. This indicates that 27% of the variability can be explained by the model. As it is a 'real life' dataset this value is seen as okay.
 ```{r}
 #linear model
 lm.log.price_living <- lm(log.price ~ log.living, data = data1)
