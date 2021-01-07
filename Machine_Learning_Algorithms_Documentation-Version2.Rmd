@@ -58,6 +58,10 @@ Levels of the variable Energy_source and Garagetype transformed.
 
 **Load of the cleaned dataset**
 
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
 ```{r}
 data <- read.csv('german_housing_cleaned.csv',header =T, encoding='UTF-8')
 head(data)
@@ -68,6 +72,7 @@ head(data)
 str(data)
 summary(data)
 colnames(data)
+apply(data,2,function(x) sum(is.na(x)))
 ```
 
 **Analysis of the distribution of the variables: 'Price', 'Living_space', 'Rooms' and 'Lot'**
@@ -85,8 +90,6 @@ hist(data$Rooms)
 
 #Lot
 plot(density(data$Lot))
-
-
 
 ```
 
@@ -123,6 +126,8 @@ data1$log.price <- log(data1$Price)
 data1$log.living <- log(data1$Living_space)
 data1$log.rooms <- log(data1$Rooms)
 data1$log.lot <- log(data1$Lot)
+data1$Condition <- factor(data1$Condition)
+#str(data1)
 ```
 
 # Week 1 - Linear Models
@@ -134,9 +139,6 @@ The variables Price, Living_space and Rooms are checked for na values
 options(scipen=999) #block scientific notation
 library(ggplot2)
 attach(data)
-any(is.na(Price))
-any(is.na(Living_space))
-any(is.na(Rooms))
 ```
 
 
@@ -144,19 +146,18 @@ any(is.na(Rooms))
 We plot the response variable "Price" against the predictor "Living_Space" to get a first impression and grahical analysis.
 ```{r, message=F}
 #Living_space
-ggplot(data, aes(log(Living_space), log(Price))) + geom_point() + geom_smooth(method = lm, se = T, color = 'red') + ggtitle('Scatterplot with regression line for log(Price) against log(Living_space)')
+ggplot(data1, aes(log.living, log.price)) + geom_point() + geom_smooth(method = lm, se = T, color = 'red') + ggtitle('Scatterplot with regression line for log(Price) against log.living')
 ```
 
 ## Fitting a Simple Linear regression of log(Price) against log(Living_space) and check the coefficients
 ```{r}
 #linear model
-lm.log.price_living <- lm(log(Price) ~ log(Living_space))
+lm.log.price_living <- lm(log.price ~ log.living, data = data1)
 summary(lm.log.price_living)
 
 #estimated regression coefficients
-living.coefs <- coef(lm.log.price_living)
-living.coefs
-
+coef(lm.log.price_living)
+exp(coef(lm.log.price_living))
 #p-values
 summary(lm.log.price_living)$coefficients
 
@@ -168,41 +169,37 @@ We interpret the intercept and the second coefficient, the slope, we exponentiat
 
 Interpretation: It seems to be a positive relationship between these two variables. More livingspace seems to have a higher price. So we fit a simple regression model to the data. With a livingspace of 0 the price would be 3551.84 EURO and with each unit increase of the livingspace the price increase by 2.47 EURO which does not make much sense. The p-value is very small therefore we have a strong evidence that the slope for livingspace is not flat.
 
-### Measures of fit
-```{r}
-#r.squared
-summary(lm.log.price_living)$r.squared
-```
-
-```{r}
-#adj.r.squared
-summary(lm.log.price_living)$adj.r.squared
-```
-
-Note: There is no threshold to define a model fit to be good, however a model that explain all the variability of the data would have an R^2 of 1.
-
 
 
 ## Linear regression of log(Price) against log(Living_space) including the Type and finding the intercept for the different Types.
+
 ```{r}
 ##linear model
-lm.log.price_living_type <- lm(log(Price) ~ log(Living_space) + Type)
+lm.log.price_living_type <- lm(data = data1, log.price ~ log.living + Type)
 summary(lm.log.price_living_type)
 
 #estimated regression coefficients
-living_type.coefs <- coef(lm.log.price_living_type)
-living_type.coefs
+coef(lm.log.price_living_type)
 
 #intercept of Type "NULL"
-notype.coefs <- coef(lm.log.price_living_type)['(Intercept)']
-notype.coefs
+coef(lm.log.price_living_type)['(Intercept)']
 
 #intercept of Type single dwelling
-sgl.dwelling.coefs <- coef(lm.log.price_living_type)['(Intercept)'] + coef(lm.log.price_living_type)['TypeSingle dwelling']
-sgl.dwelling.coefs
+coef(lm.log.price_living_type)['(Intercept)'] + coef(lm.log.price_living_type)['TypeSingle dwelling']
+```
 
-#p-values
-summary(lm.log.price_living_type)$coefficients
+
+## Linear regression of log(Price) against log(Living_space) including the Type interaction
+```{r}
+##linear model
+lm.log.price_living_type2 <- lm(data = data1, log.price ~ log.living * Type)
+summary(lm.log.price_living_type2)
+
+#estimated regression coefficients
+coef(lm.log.price_living_type2)
+
+# The "P-Values - confidence intervals" duality
+confint(lm.log.price_living_type2)
 ```
 
 Result: mostly very significant p-values for Price ~ Living_space and different types. Only TypeCastle and TypeDuplex with non significant values. We can assume that the different types have different impact on the variable Price against Living_space. 
@@ -212,17 +209,26 @@ Intercept for TypeSingle Dwelling: exp(7.869463) with Slope: exp(0.9969080)
 
 ### Measures of fit
 ```{r}
+
+formula(lm.log.price_living_type)
 #r.squared
 summary(lm.log.price_living_type)$r.squared
-
 #adj.r.squared
 summary(lm.log.price_living_type)$adj.r.squared
 ```
 
+```{r}
+
+formula(lm.log.price_living_type2)
+#r.squared
+summary(lm.log.price_living_type2)$r.squared
+#adj.r.squared
+summary(lm.log.price_living_type2)$adj.r.squared
+```
 
 ## Linear regression of log(Price) against log(Rooms)
 In an next step we examine the data set graphically and consider again "Price" as response variable but as predictor "Rooms" and we fit the model again with a simple linear regression.
-```{r,message=F}
+```{r,include = FALSE, message=F}
 #Rooms
 ggplot(data, aes(Rooms,Price)) + geom_point()+ geom_smooth(method = lm, se = F, color= 'red') +
 scale_x_continuous(breaks = rep(1:20,len=20)) + ggtitle('Plot of Price against Rooms with regression line in red')
@@ -233,6 +239,8 @@ summary(lm.log.price_rooms)
 
 ### Measures of fit
 ```{r}
+
+formula(lm.log.price_rooms)
 #r.squared
 summary(lm.log.price_rooms)$r.squared
 
@@ -242,7 +250,7 @@ summary(lm.log.price_rooms)$adj.r.squared
 
 ## Linear regression of log(Price) against Type
 Now we are modelling a linear regression with dependent variable 'Price' and the categorical variable "Type" as independent variable. First we visualize the variable 'Type' with a boxplot with and one without outliers.
-```{r}
+```{r, include = FALSE, message=FALSE}
 types.box.with_outlier <- ggplot(data, aes(x=Type, y=log(Price))) + geom_boxplot(outlier.colour = 'red')+ theme(axis.text.x = element_text(angle = 90)) + ggtitle('Boxplots of log(Price) against Types with outliers in red')
 plot(types.box.with_outlier)
 
@@ -252,93 +260,6 @@ plot(types.box.no_outlier)
 lm.log.price_type <- lm(log(Price) ~ Type)
 summary(lm.log.price_type)
 ```
-
-
-## Testing the effect of a categorical variable and post-hoc contrasts 
-```{r, warning=F, message=F}
-head(data1)
-
-condition.box.with_outlier <- ggplot(data1, aes(x=Condition, y=log.price)) + geom_boxplot(outlier.colour = 'red')+ theme(axis.text.x = element_text(angle = 90)) + ggtitle('Boxplots of log(Price) against Condition with outliers in red')
-plot(condition.box.with_outlier)
-
-#model
-lm.price_condition.1 <- lm(log.price ~ Condition, data = data1)
-summary(lm.price_condition.1)
-
-#coefficients
-condition.coef.1 <- coef(lm.price_condition.1)
-condition.coef.1
-
-#model without slope, only intercept
-lm.price_condition.0 <- lm(log.price ~ 1, data = data1)
-summary(lm.price_condition.0)
-condition.coef.0 <- coef(lm.price_condition.0)
-condition.coef.0
-
-#Anova
-anova.condition <- anova(lm.price_condition.0, lm.price_condition.1)
-anova.condition
-
-#post-hoc contrasts
-library(multcomp)
-unique(data1$Condition)
-ph.test.1 <- glht(model = lm.price_condition.1, linfct = mcp(Condition = c('refurbished - dilapidated = 0')))
-summary(ph.test.1)
-```
-
-## Testing categorical variable (Furnishing_quality)and comparing by F-test 
-```{r}
-furnish.box.with_outlier <- ggplot(data, aes(x=Furnishing_quality, y=log(Price))) + geom_boxplot(outlier.colour = 'red')+ theme(axis.text.x = element_text(angle = 90)) + ggtitle('Boxplots of log(Price) against Furnishing Quality with outliers in red')
-plot(furnish.box.with_outlier)
-
-furnish.box.no_outlier <- ggplot(data, aes(x=Furnishing_quality, y=log(Price))) + geom_boxplot(outlier.shape = NA)+ theme(axis.text.x = element_text(angle = 90)) + ggtitle('Boxplots of log(Price) against Furnishing Quality without outliers')
-plot(furnish.box.no_outlier)
-
-lm.furnishing <- lm(log(Price) ~ Furnishing_quality)
-summary(lm.furnishing)
-
-lm.furnishing1 <- lm(log(Price) ~ 1)
-summary(lm.furnishing1)
-
-anova.furnishing <- anova(lm.furnishing1, lm.furnishing)
-summary(anova.furnishing)
-```
-
-
-### Adding more categorical variables to the testing above
-```{r}
-lm.furnishing2 <- update(lm.furnishing,. ~ . + Type + Condition)
-formula(lm.furnishing2)
-drop1(lm.furnishing2, test = "F")
-```
-
-## Linear regression of log(Price) against log(Living_space) including the Type-Living_space interaction 
-```{r}
-lm.interact <- lm(log(Price) ~ log(Living_space) * Type) # lm(y ~ x1 * x2) equivalent to lm(y ~ x1 + x2 + x1:x2)
-summary(lm.interact)
-
-#coefficients
-interact.coefs <- coef(lm.interact)
-interact.coefs
-
-#p-values
-summary(lm.interact)$coefficients
-
-#Confidence Intervals
-lm.interact.CI <- confint(lm.interact)
-lm.interact.CI
-```
-
-### Measures of fit
-```{r}
-#r.squared
-summary(lm.interact)$r.squared
-
-#adj.r.squared
-summary(lm.interact)$adj.r.squared
-```
-
-
 ## Fitted values
 
 **The function fitted() can be used to extract the predicted values for the existing observations**
@@ -351,15 +272,6 @@ head(fitted.price_living)
 plot(log(Price)~ log(Living_space), main = 'Model log(Price) ~ log(Living_space)', col = 'navy', pch = 16)
 points(fitted.price_living ~ log(Living_space), col = 'red', pch = 16)
 abline(lm.log.price_living, col = 'yellow', lwd = 2.5)
-
-
-#lm.log.price_rooms
-fitted.price_rooms <- fitted(lm.log.price_rooms)
-str(fitted.price_rooms)
-head(fitted.price_rooms)
-plot(log(Price)~ log(Rooms), main = 'Model log(Price) ~ log(Rooms)', col = 'navy', pch = 16)
-points(fitted.price_rooms ~ log(Rooms), col = 'red', pch = 16)
-abline(lm.log.price_rooms, col = 'yellow', lwd = 2.5)
 ```
 
 
@@ -375,33 +287,12 @@ id <- sample(x = 1:10318, size = 5)
 resid.price_living[id]
 fitted.price_living[id]
 
-plot(log(Price) ~ log(Living_space), main = 'Modellog(Price) ~ log(Living_space)', col = 'navy', pch = 16)
+plot(log(Price) ~ log(Living_space), main = 'Model log(Price) ~ log(Living_space)', col = 'navy', pch = 16)
 abline(lm.log.price_living, col = 'green', lwd = 2.5)
 
 points(log(Price) ~ log(Living_space), data = data1[id, ], col = 'red', pch = 4, lwd = 5)
 segments(x0 = data1[id, 'log.living'], x1 = data1[id, 'log.living'],
          y0 = fitted.price_living[id], y1 = data1[id, 'log.price'], col = 'yellow', lwd = 2)
-```
-
-
-## Residuals of model log(Price) ~ log(Rooms)
-```{r, message = F}
-attach(data1)
-resid.price_rooms <- resid(lm.log.price_rooms)
-length(resid.price_rooms)
-head(resid.price_rooms)
-
-set.seed(100)
-id <- sample(x = 1:10318, size = 5)
-resid.price_rooms[id]
-fitted.price_rooms[id]
-
-plot(log(Price) ~ log(Rooms), main = 'Modellog(Price) ~ log(Rooms)', col = 'navy', pch = 16)
-abline(lm.log.price_rooms, col = 'green', lwd = 2.5)
-
-points(log(Price) ~ log(Rooms), data = data1[id, ], col = 'red', pch = 4, lwd = 5)
-segments(x0 = data1[id, 'log.rooms'], x1 = data1[id, 'log.rooms'],
-         y0 = fitted.price_rooms[id], y1 = data1[id, 'log.price'], col = 'yellow', lwd = 3)
 ```
 
 
@@ -437,6 +328,70 @@ abline(lm.train, col = 'yellow', lwd = 2.5)
 
 
 
+## Testing the effect of a categorical variable and post-hoc contrasts 
+```{r, warning=F, message=F}
+condition.box.with_outlier <- ggplot(data1, aes(x=Condition, y=log.price)) + geom_boxplot(outlier.colour = 'red')+ theme(axis.text.x = element_text(angle = 90)) + ggtitle('Boxplots of log(Price) against Condition with outliers in red')
+plot(condition.box.with_outlier)
+
+#model
+lm.price_condition.1 <- lm(log.price ~ Condition, data = data1)
+summary(lm.price_condition.1)
+
+#coefficients
+coef(lm.price_condition.1)
+
+aggregate(log.price ~Condition, 
+          FUN = mean, data = data1)
+
+#model without slope, only intercept
+lm.price_condition.0 <- lm(log.price ~ 1, data = data1)
+summary(lm.price_condition.0)
+coef(lm.price_condition.0)
+
+#Anova
+anova(lm.price_condition.0, lm.price_condition.1)
+
+
+#post-hoc contrasts
+library(multcomp)
+unique(data1$Condition)
+ph.test.1 <- glht(model = lm.price_condition.1, linfct = mcp(Condition = c('refurbished - dilapidated = 0')))
+summary(ph.test.1)
+```
+R uses "treatment contrasts" and therefore the Intercept refers to the first in alphabetical order, here "Null". The other coefficients represent the difference.
+
+## Adding more categorical variables to the testing above
+
+```{r}
+#str(data1)
+Year_built1 <- as.integer(data1$Year_built)
+floor1 <- as.integer(data1$Floors)
+typeof(Year_built1)
+lm.price_condition.2 <- update(lm.price_condition.1,. ~ . + Type + log.rooms + State +Energy_efficiency_class + Year_built1 + Furnishing_quality + floor1)
+formula(lm.price_condition.2)
+drop1(lm.price_condition.2, test = "F")
+```
+
+## Testing categorical variable (Furnishing_quality)and comparing by F-test (Soll das  hier noch rein ??)
+```{r, include=FALSE}
+furnish.box.with_outlier <- ggplot(data, aes(x=Furnishing_quality, y=log(Price))) + geom_boxplot(outlier.colour = 'red')+ theme(axis.text.x = element_text(angle = 90)) + ggtitle('Boxplots of log(Price) against Furnishing Quality with outliers in red')
+plot(furnish.box.with_outlier)
+
+furnish.box.no_outlier <- ggplot(data, aes(x=Furnishing_quality, y=log(Price))) + geom_boxplot(outlier.shape = NA)+ theme(axis.text.x = element_text(angle = 90)) + ggtitle('Boxplots of log(Price) against Furnishing Quality without outliers')
+plot(furnish.box.no_outlier)
+
+lm.furnishing <- lm(log(Price) ~ Furnishing_quality)
+summary(lm.furnishing)
+
+lm.furnishing1 <- lm(log(Price) ~ 1)
+summary(lm.furnishing1)
+
+anova.furnishing <- anova(lm.furnishing1, lm.furnishing)
+summary(anova.furnishing)
+```
+
+
+
 # Week 2 - Non-linearity
 
 ## Polynomials
@@ -449,34 +404,21 @@ attach(data1)
 
 **Graphical analysis** 
 
-log(Price) ~ Rooms (not log transformed)
-```{r, message = F}
-#log(Price) ~ Rooms
-gg.log.price_rooms <- ggplot(data1, mapping = aes(y = log(Price),x = Rooms)) + geom_point()
-gg.log.price_rooms + geom_smooth() + scale_x_continuous(breaks = rep(1:20,len=20))
-```
-
-
-
-log(Prices) ~ log(Rooms) with log transformation
-```{r, message = F}
-#log(Price) ~ log(Rooms)
-gg.log.price_log.rooms <- ggplot(data1, mapping = aes(y = log.price, x = log.rooms)) + geom_point()
-gg.log.price_log.rooms + geom_smooth() 
-```
-
-
-
 log(Price) ~ log(Living_space)
 ```{r}
 gg.log.price_log.living <- ggplot(data1,mapping = aes(y = log.price, x = log.living)) + geom_point()
 gg.log.price_log.living + geom_smooth()
 ```
+```{r}
+gg.log.price_log.living <- ggplot(data1,mapping = aes(y = log.price, x = Year_built1)) + geom_point()
+gg.log.price_log.living + geom_smooth()
+```
+
 
 Quadratic Effects
 ```{r}
 #model with a linear effect for log.living
-lm.living.1 <- lm(log.price ~ log.living + log.rooms)
+lm.living.1 <- lm(log.price ~ log.living + Year_built1)
 summary(lm.living.1)
 ```
 
@@ -488,8 +430,8 @@ summary(lm.living.2)
 
 ```{r}
 #test in quadratic
-anova.lm.living <- anova(lm.living.1, lm.living.2)
-summary(anova.lm.living)
+ anova(lm.living.1, lm.living.2)
+
 ```
 
 ```{r}
@@ -515,7 +457,7 @@ gg.log.lot.log.price + geom_smooth(method = 'gam')
 ```
 
 ## Regression Splines
-```{r}
+```{r, include =FALSE}
 library(splines)
 lm.regression_splines <- lm(log.price ~ bs(log.living, df = 3))
 summary(lm.regression_splines)
@@ -523,17 +465,10 @@ summary(lm.regression_splines)
 
 
 ## Generalised Additive Models - GAMs
-```{r}
+```{r, include=FALSE}
 library(mgcv)
 ``` 
 
-GAMs for log(Price) ~ s(Rooms)
-```{r}
-attach(data1)
-gam.log.price.rooms <- gam(log.price ~ s(Rooms))
-summary(gam.log.price.rooms)
-plot(gam.log.price.rooms, residuals = TRUE, cex = 2)
-```
 
 GAMs for log(Price) ~ log(Rooms)
 ```{r}
@@ -543,14 +478,96 @@ summary(gam.log.price.log.rooms)
 plot(gam.log.price.log.rooms, residuals = TRUE, cex = 2)
 ```
 
-GAMs for log(Price) ~ log(Living_space) + s(Rooms) + s(Garages)
+**GAMs for log(Price) ~ log(Living_space) + s(Log(Rooms)) + s(log(Garages)**
 ```{r}
-gam.log.price.log.living <- gam(log.price ~ log.living + s(Rooms) + s(Garages))
+gam.log.price.log.living <- gam(log.price ~ log.living + s(log.rooms) + s(log(Garages)))
 summary(gam.log.price.log.living)
 
 plot(gam.log.price.log.living, residuals = TRUE, select = 1)
 ```
 
+```{r}
+
+#stroe the residuals in data1
+data1$resid.price_living <- resid(lm.log.price_living)
+
+#creat QQ-Plot
+
+qqnorm(resid(lm.log.price_living))
+qqline(resid(lm.log.price_living))
+```
+**Expected value of the errors is “on zero”**
+```{r, eval = F}
+ggplot(mapping = aes(y = resid(lm.log.price_living),
+                     x = fitted(lm.log.price_living))) +
+  geom_abline(intercept = 0, slope = 0) + geom_point() +
+  geom_smooth()
+```
+probably non-linear because the smoother is not on zero
+
+**Homoscedasticity**
+
+```{r}
+ggplot(mapping = aes(y = abs(resid(lm.log.price_living)), x = fitted(lm.log.price_living))) +
+  geom_abline(intercept = 0, slope = 0) + geom_point() +
+  geom_smooth()
+```
+The variance of the residuals seems to be fairly constant 
+
+**Cooks distance**
+
+```{r}
+## 1) compute Cook’s distance 
+
+cooks.dist.log.price_living <- cooks.distance(lm.log.price_living) 
+
+##
+## 2) plot it
+
+ggplot(data = data1,
+       mapping = aes(y = log.price, x = log.living,
+                     colour = cooks.dist.log.price_living)) +
+  geom_point() +
+  geom_smooth(method = "lm", se = FALSE) + facet_wrap(. ~ Type)
+```
+
+```{r}
+plot(lm.log.price_living, which = 5)
+```
+
+
+**Testing the model assumptions**
+
+```{r}
+
+plot(lm.log.price_living_type)
+```
+
+
+**Bootstrap**
+
+```{r}
+#mean(data$Price)
+##
+B <- 10^3
+t.mean <- c()
+
+for(i in 1:B){
+  t.id <- sample(1:10318, replace = TRUE)
+  t.data.price <- data$Price[t.id]
+  t.mean[i] <- mean(t.data.price)
+}
+
+
+##
+length(t.mean)
+
+hist(t.mean, breaks = 50)
+abline(v = mean(data$Price), col = "red")
+
+sorted.means <- sort(t.mean) 
+quantile(sorted.means, probs = c(0.025, 0.975))
+```
 
 
 # Week 3 - Generalised Linear Models
@@ -746,7 +763,7 @@ data$MillionYes
 
 ggplot(data = data,
 mapping = aes(y = MillionYes,
-x = log(Living_space))) +
+x = log(Living_space)) +
 geom_point()
 ```
 Let’s fit a logistic regression model and add fit to the this graph
@@ -873,12 +890,12 @@ print(testdf)
 library(e1071)
 ```
 
-```{r}
+```{r,  warning=FALSE}
 # Print average accuracy and standard deviation
-accuracy <- rep(NA, 1)
+accuracy <- rep(NA, 100)
 set.seed(2)
 # Calculate accuracies for 100 training/test partitions
-for (i in 1:1){
+for (i in 1:100){
     testdf[, "train"] <- ifelse(runif(nrow(testdf)) < 0.8, 1, 0)
     trainset <- testdf[testdf$train == 1, ]
     testset <- testdf[testdf$train == 0, ]
@@ -899,7 +916,7 @@ plot(svm_model,testset)
 
 
 
-```{r}
+```{r,  warning=FALSE}
 # Print average accuracy and standard deviation
 accuracy <- rep(NA, 10)
 set.seed(2)
@@ -941,8 +958,8 @@ library(caret)
 ```
 
 ```{r}
-str(data)
-apply(data,2,function(x) sum(is.na(x)))
+#str(data)
+#apply(data,2,function(x) sum(is.na(x)))
 
 df <- data.frame(data$Price, data$Living_space, data$Lot, data$Rooms, data$Year_built, data$Garages)
 
@@ -956,8 +973,8 @@ mean(data$Price)
 ```
 
 **Prepare for Training**
-```{r}
-set.seed(123)
+```{r, include=FALSE}
+set.seed(42)
 indices <- createDataPartition(df.house$data.Price, p = 0.8, list = FALSE)
 train <- df.house %>% slice(indices)
 test <- df.house %>% slice(-indices)
@@ -966,7 +983,7 @@ boxplot(train$data.Price, test$data.Price, df.house %>% sample_frac(0.2) %>% pul
 
 
 
-```{r}
+```{r, include=FALSE}
 max <- apply(df.house, 2, max)
 min <- apply(df.house, 2, min)
 df.house_scaled <- as.data.frame(scale(df.house, center = min, scale = max - min))
@@ -976,7 +993,8 @@ test_scaled <- df.house_scaled %>% slice(-indices)
 
 
 ### Fit the Network
-```{r}
+```{r, include=FALSE}
+set.seed(42)
 n <- names(train_scaled)
 
 f <- as.formula(paste("data.Price ~", paste(n[!n %in% "data.Price"], collapse = " + ")))
@@ -985,7 +1003,8 @@ plot(nn)
 
 ```
 
-```{r}
+```{r, include=FALSE}
+set.seed(42)
 pred_scaled <- compute(nn, test_scaled %>% select(-data.Price))
 
 pred <- pred_scaled$net.result * (max(df.house$data.Price) - min(df.house$data.Price)) + min(df.house$data.Price)
@@ -997,7 +1016,7 @@ plot(test$data.Price, pred, col='blue', pch=16, ylab = "predicted Price NN", xla
 abline(0,1)
 ```
 And calculate the RMSE
-```{r}
+```{r, include=FALSE}
 sqrt(mean((test$data.Price - pred)^2))
 ```
 

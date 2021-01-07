@@ -94,7 +94,29 @@ plot(density(data$Lot))
 ```
 Result: The variables are right skewed
 
+
+**Log Transformation of variables**
+
 Therefore we will use the Log Transformation of the variables 'Price', 'Living_space', 'Rooms', 'Lot' to get a nearly normal distribution
+``` {r}
+par(mfrow = c(2,2))
+
+#Price
+price.log <- density(log(data$Price))
+plot(price.log)
+
+#Living_space
+living.log <- density(log(data$Living_space))
+plot(living.log)
+
+#Rooms
+rooms.log <- log(data$Rooms)
+hist(rooms.log)
+
+#Lot
+lot.log <- density(log(data$Lot))
+plot(lot.log)
+```
 
 **Add new columns with log transformed variables price, living space and rooms**
 ```{r}
@@ -156,7 +178,7 @@ coef(lm.log.price_living_type)['(Intercept)'] + coef(lm.log.price_living_type)['
 ```{r}
 ##linear model
 lm.log.price_living_type2 <- lm(data = data1, log.price ~ log.living * Type)
-summary(lm.log.price_living_type2)$coefficients
+summary(lm.log.price_living_type2)
 
 #estimated regression coefficients
 coef(lm.log.price_living_type2)
@@ -172,7 +194,7 @@ formula(lm.log.price_living_type)
 summary(lm.log.price_living_type)$r.squared
 summary(lm.log.price_living_type)$adj.r.squared
 ```
-
+Note: There is no threshold to define a model fit to be good, however a model that explain all the variability of the data would have an R^2 of 1.
 
 ```{r}
 formula(lm.log.price_living_type2)
@@ -207,7 +229,7 @@ id <- sample(x = 1:10318, size = 5)
 resid.price_living[id]
 fitted.price_living[id]
 
-plot(log(Price) ~ log(Living_space), main = 'Modellog(Price) ~ log(Living_space)', col = 'navy', pch = 16)
+plot(log(Price) ~ log(Living_space), main = 'Model log(Price) ~ log(Living_space)', col = 'navy', pch = 16)
 abline(lm.log.price_living, col = 'green', lwd = 2.5)
 
 points(log(Price) ~ log(Living_space), data = data1[id, ], col = 'red', pch = 4, lwd = 5)
@@ -247,8 +269,6 @@ abline(lm.train, col = 'yellow', lwd = 2.5)
 
 ## Testing the effect of a categorical variable and post-hoc contrasts 
 ```{r, warning=F, message=F}
-unique(data1$Condition)
-
 condition.box.with_outlier <- ggplot(data1, aes(x=Condition, y=log.price)) + geom_boxplot(outlier.colour = 'red')+ theme(axis.text.x = element_text(angle = 90)) + ggtitle('Boxplots of log(Price) against Condition with outliers in red')
 plot(condition.box.with_outlier)
 
@@ -277,13 +297,16 @@ unique(data1$Condition)
 ph.test.1 <- glht(model = lm.price_condition.1, linfct = mcp(Condition = c('refurbished - dilapidated = 0')))
 summary(ph.test.1)
 ```
-R uses "treatment contrasts" and therefore the Intercept refers to the first in alphabetical order, here "as new". The other coefficients represent the difference.
+R uses "treatment contrasts" and therefore the Intercept refers to the first in alphabetical order, here "Null". The other coefficients represent the difference.
 
 ## Adding more categorical variables to the testing above
 
 ```{r}
 #str(data1)
-lm.price_condition.2 <- update(lm.price_condition.1,. ~ . + Type + Rooms + State +Energy_efficiency_class + Year_built + Furnishing_quality + Lot)
+Year_built1 <- as.integer(data1$Year_built)
+floor1 <- as.integer(data1$Floors)
+typeof(Year_built1)
+lm.price_condition.2 <- update(lm.price_condition.1,. ~ . + Type + log.rooms + State +Energy_efficiency_class + Year_built1 + Furnishing_quality + floor1)
 formula(lm.price_condition.2)
 drop1(lm.price_condition.2, test = "F")
 ```
@@ -311,18 +334,18 @@ gg.log.price_log.living + geom_smooth()
 ```
 
 ```{r}
-gg.log.price_log.living <- ggplot(data1,mapping = aes(y = log.price, x = Year_built)) + geom_point()
+gg.log.price_log.living <- ggplot(data1,mapping = aes(y = log.price, x = Year_built1)) + geom_point()
 gg.log.price_log.living + geom_smooth()
 ```
 ```{r}
-gg.log.price_log.living <- ggplot(data1,mapping = aes(y = log.price, x = log.living, colour = Year_built)) + geom_point()
+gg.log.price_log.living <- ggplot(data1,mapping = aes(y = log.price, x = log.living, colour = log.rooms)) + geom_point()
 gg.log.price_log.living + geom_smooth()
 ```
 
 Quadratic Effects
 ```{r}
 #model with a linear effect for log.living
-lm.living.1 <- lm(log.price ~ log.living + Year_built)
+lm.living.1 <- lm(log.price ~ log.living + Year_built1)
 drop1(lm.living.1, test = "F")
 ```
 
@@ -334,9 +357,10 @@ summary(lm.living.2)
 
 ```{r}
 #test in quadratic
-anova.lm.living <- anova(lm.living.1, lm.living.2)
-summary(anova.lm.living)
+anova(lm.living.1, lm.living.2)
+
 ```
+Second Model has lower RSS Value and therefore slightly better
 
 
 ```{r}
@@ -345,13 +369,13 @@ gg.log.price_log.living + geom_smooth(method = 'lm', formula = y ~poly(x, degree
 ``` 
 ```{r}
 #model with a quadratic poly
-lm.living.3 <- lm(log.price ~ log.rooms + log.living + poly(log.living, degree = 2))
+lm.living.3 <- lm(log.price ~ log.rooms + poly(log.living, degree = 2))
 summary(lm.living.3)
 ```
 
 ```{r}
 #model with a cubic poly
-lm.living.4 <- lm(log.price ~ log.rooms + log.living + poly(log.living, degree = 3))
+lm.living.4 <- lm(log.price ~ log.rooms + poly(log.living, degree = 3))
 summary(lm.living.4)
 ```
 
@@ -376,14 +400,14 @@ library(mgcv)
 GAMs for log(Price) ~ s(Rooms)
 ```{r}
 attach(data1)
-gam.log.price.rooms <- gam(log.price ~ s(Rooms))
+gam.log.price.rooms <- gam(log.price ~ s(log.rooms))
 summary(gam.log.price.rooms)
 plot(gam.log.price.rooms, residuals = TRUE, cex = 2)
 ```
 
 GAMs for log(Price) ~ log(Living_space) + s(Rooms) + s(Garages)
 ```{r}
-gam.log.price.log.living <- gam(log.price ~ log.living + s(Rooms) + s(Garages))
+gam.log.price.log.living <- gam(log.price ~ log.living + s(log.rooms) + s(log(Garages)))
 summary(gam.log.price.log.living)
 
 plot(gam.log.price.log.living, residuals = TRUE, select = 1)
@@ -457,7 +481,7 @@ B <- 10^3
 t.mean <- c()
 
 for(i in 1:B){
-  t.id <- sample(1:10, replace = TRUE)
+  t.id <- sample(1:10318, replace = TRUE)
   t.data.price <- data$Price[t.id]
   t.mean[i] <- mean(t.data.price)
 }
