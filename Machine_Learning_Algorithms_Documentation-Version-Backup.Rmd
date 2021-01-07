@@ -898,6 +898,9 @@ g <- ggplot(mapping = aes(Living_space, Price)) +
 print(g)
 ```
 As the plot clearly shows there is a line -1 and 1 classification. In color turqoise we see all the objects that fall into category 'Multiple dwelling' and the rose colored area with the dots are of the Type 'Villa'. The dots in the other color then the background are mismatched points that fall in the cost of 1.
+
+
+Thomas code
 ```{r}
 data$wt5 <- factor(ifelse(data$wt5 > 600000, 1, -1))
 data['MillionYes'] = as.factor(data$MillionYes)
