@@ -597,7 +597,7 @@ exp(coef(glm.rooms))
 
 The Interpretation of the coefficients are: A house with no Type information has around 7.6 rooms and e.g. Villa has ca. 15.77% more rooms (ca. 8.8 rooms)
 
-```{r, include = T}
+```{r, include = T, warning=F, message=F}
 #to double check and convince ourselves as single house (type) is checked and predicted
 
 library(tidyverse)
@@ -760,12 +760,9 @@ xlab("Groups")
 Let’s fit a binary model
 ``` {r, results = 'hide'}
 data$MillionYes <- ifelse(data$Price > 1000000, 1, 0)
-data$MillionYes
+#data$MillionYes
 
-ggplot(data = data,
-mapping = aes(y = MillionYes,
-x = log(Living_space)) +
-geom_point()
+ggplot(data = data, mapping = aes(y = MillionYes, x = log(Living_space))) + geom_point()
 ```
 Let’s fit a logistic regression model and add fit to the this graph
 
@@ -1124,11 +1121,11 @@ plot(models$finalModel)
 # Week 6 - Agent-based Modelling and Approximate Bayesian Computation
 
 ## Result
-```{r pressure, echo=FALSE, fig.cap="ABM_1", out.width = '100%'}
+```{r, echo=FALSE, fig.cap="ABM_1", out.width = '100%'}
 knitr::include_graphics("ABM_1.PNG")
 ```
 
-```{r pressure, echo=FALSE, fig.cap="ABM_2", out.width = '100%'}
+```{r, echo=FALSE, fig.cap="ABM_2", out.width = '100%'}
 knitr::include_graphics("ABM_2.PNG")
 ```
 
