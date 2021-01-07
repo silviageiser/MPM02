@@ -837,9 +837,67 @@ ggplot(data = glm.binary,
 
 
 
-
-
 # Week 4 - Support Vector Machines
+```{r}
+library(dplyr)
+library(caret)
+library(e1071)
+library(data.table)
+```
+
+```{r, message=F, warning=F}
+#load data and filter rows with variable 'Type? == 'Multiple dwelling' or 'Villa'
+svm.data <- fread('german_housing_cleaned.csv',header =T, encoding='UTF-8')
+house <- svm.data %>% filter(Type == "Multiple dwelling" | Type == "Villa")
+
+#create new variable 'is.multi' with 'TRUE' 'FALSE' to use for the SVM model 
+house[,is.multi := as.factor(Type == 'Multiple dwelling')]
+```
+
+Split dataset
+```{r}
+split80 <- round(nrow(house)* 0.80)
+train <- house[1:split80,]
+test <- house[(split80 + 1):nrow(house),]
+dim(train)
+dim(test) 
+```
+
+Fit SVM and do a cross validation with cost 0.25, 0.5, 1.00
+```{r}
+model <- train(is.multi ~ Price + Living_space,
+               data = train, method = 'svmLinear2', trControl = trainControl(method = 'cv'))
+print(model)
+```
+With the method = 'svmLinear2' the model will be tested with different cost values. As the model with cost = 1 has the highest accuracy (0.9329385)the prediction will be made with this parameters.
+
+Prediction with SVM model with cost = 1
+```{r}
+print(predict(model, newdata = test))
+```
+The code will evaluate each row and mark as TRUE if the object should be a 'Multiple dwelling' according to the svm model. FALSE stands for a object of Type 'Villa'. 
+
+For reference we also can have a quick look at the test dataframe and see what would be the Type.
+```{r}
+head(test, 20)
+```
+We see that most of the times the SVM is able to classify the Type correctly. 
+
+For further prediction we will create a new dataframe with all possible combinations of points (Price in 10.000er steps, sqm in 1.00sqm steps)
+```{r}
+house1 <- expand.grid(Price = seq(min(house$Price),max(house$Price), 10000),Living_space = seq(min(house$Living_space), max(house$Living_space),1))
+
+house1$is.multi <- predict(model, newdata = house1)
+```
+
+Plot SVM
+```{r}
+g <- ggplot(mapping = aes(Living_space, Price)) +
+  geom_raster(mapping = aes(fill = is.multi), data = house2, alpha = 0.5) +
+  geom_point(mapping = aes(color = is.multi), data = train)
+print(g)
+```
+As the plot clearly shows there is a line -1 and 1 classification. In color turqoise we see all the objects that fall into category 'Multiple dwelling' and the rose colored area with the dots are of the Type 'Villa'. The dots in the other color then the background are mismatched points that fall in the cost of 1.
 ```{r}
 data$wt5 <- factor(ifelse(data$wt5 > 600000, 1, -1))
 data['MillionYes'] = as.factor(data$MillionYes)
