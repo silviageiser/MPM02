@@ -52,8 +52,7 @@ pre { /* Code block - determines code spacing between lines */
 Origin data set cleaned:
 
 Variable rooms, bathrooms, bedrooms, floors, garages, Year_built, Year_renovated changed from decimal to integer
-Subset with buildings up to 20 rooms for our analysis created
-Rooms with .5 rounded up
+Subset with buildings up to 20 rooms for our analysis created Rooms with .5 rounded up
 Levels of the variable Energy_source and Garagetype transformed.
 
 **Load of the cleaned dataset**
@@ -62,15 +61,12 @@ Read in the data & have a short glance with the head() function to get an idea o
 
 ```{r}
 data <- read.csv('german_housing_cleaned.csv',header =T, encoding='UTF-8')
-head(data)
 ```
 
 **Inspection of all variables**
 
 The dataset contains 10'318 observations with 20 variables (containing continuous, categorical variables as well as count data)
-With the apply() function the amount of NA values for each variable can be checked in one view --> i.e. the variables Bedrooms, Year_renovated, Bathrooms, Floors, Year-built and Garages contain NA-values. This has to be considered through out the further analysis.
-
-```{r, eval=FALSE}
+```{r, include = F}
 str(data)
 summary(data)
 colnames(data)
@@ -78,9 +74,8 @@ colnames(data)
 
 **Analysis of the distribution of the variables: 'Price', 'Living_space', 'Rooms' and 'Lot'**
 
-Firstly we want to find out the distribution of the numeric variables. As seen below the variables 'Price', 'Living_space', 'Rooms', 'Lot' have a right skewed distribution and therefore have to be transformed in the next step.
-
-```{r}
+Firstly we want to find out the distribution of the numeric variables. As seen below the variables 'Price', 'Living_space', 'Rooms', 'Lot' have a right skewed distribution and therefore have to be log transformed in the next step.
+```{r, echo = F}
 par(mfrow = c(2,2))
 
 #Price
@@ -94,9 +89,6 @@ hist(data$Rooms)
 
 #Lot
 plot(density(data$Lot))
-
-
-
 ```
 
 Result: The variables are right skewed
