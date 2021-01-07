@@ -3,14 +3,14 @@ title: "Machine Learning Algorithms Documentation"
 author: "Geiser, Gruen, Hefti, Kuster"
 date: "08/01/2021"
 output:
+  word_document:
+    toc: yes
+    toc_depth: '2'
   html_document:
     toc: yes
     toc_depth: 2
     number_sections: yes
     toc_float: yes
-  word_document:
-    toc: yes
-    toc_depth: '2'
 ---
 <style type="text/css">
 
@@ -45,7 +45,7 @@ pre { /* Code block - determines code spacing between lines */
 }
 </style>
 
-**Data preparation**
+#Data preparation
 
 **Dataset - German Housing Data**
 
@@ -589,15 +589,14 @@ summary(glm.rooms)
 ```
 
 ```{r}
-#Interpretation the coefficients of a Poisson model the inverse, the exponential, is needed due to use of the link function (log() function)
+#exponential function, is needed duelog() function as link function within glm
 exp(coef(glm.rooms)) 
 
 ```
-
-The Interpretation of the coefficients are: A house with no Type information has around 7.6 rooms and e.g. Villa has ca. 15.77% more rooms (ca. 8.8 rooms)
+Before the Interpretation of the coefficients of a Poisson model the inverse, the exponential, is needed due to use of the link function (log() function). The Interpretation of the coefficients are: A house with no Type information has around 7.6 rooms and e.g. Villa has ca. 15.77% more rooms (ca. 8.8 rooms)
 
 ```{r, include = T}
-#to double check and convince ourselves as single house (type) is checked and predicted
+#to double check single house (type) is checked and predicted
 
 library(tidyverse)
 
@@ -640,13 +639,13 @@ tail(sim.data.rooms.Poisson)
 **Visualization of the glm count data model**
 ``` {r}
 ggplot(mapping = aes(y = sim.data.rooms.Poisson$sim_1,
-x = data$Type)) +
-geom_boxplot() +
-geom_hline(yintercept = 0) +
-ylab("simulated no. of rooms\n(assuming Poisson dist)") +
-xlab("type") + theme(axis.text.x = element_text(angle = 90))
+                     x = data$Type)) +
+  geom_boxplot() +
+  geom_hline(yintercept = 0) +
+  ylab("simulated no. of rooms\n(assuming Poisson dist)") +
+  xlab("type") + theme(axis.text.x = element_text(angle = 90))
 ```
-The results of the simulation seem to agree with those of the boxplot, see for example Type = Villa
+The results of the simulation seem to agree with the observation, see for example Type = Villa, but there are some difference due to outliers
 
 
 **GLM with binomial data continious variable**
@@ -698,7 +697,7 @@ ggplot(data = data,
               method.args = list(family = "binomial"))
 
 ```
-If we compare the Residual deviance and the corresponding degrees of freedom in the summary output we would expect in an truly Poisson distributed data hat the residual dviance and the degrees of freedom would be approximately the same value. Therefore it could be overdispersed here and we use the "quasibinomial" family.
+If we compare the Residual deviance and the corresponding degrees of freedom in the summary output we would expect in an truly Poisson distributed data hat the residual deviance and the degrees of freedom would be approximately the same value. Therefore it could be overdispersed here and we use the "quasibinomial" family.
 
 ```{r}
 glm.sq.price <- glm(cbind(Price, Living_space)~ State,
@@ -761,10 +760,6 @@ Let’s fit a binary model
 data$MillionYes <- ifelse(data$Price > 1000000, 1, 0)
 data$MillionYes
 
-ggplot(data = data,
-mapping = aes(y = MillionYes,
-x = log(Living_space)) +
-geom_point()
 ```
 Let’s fit a logistic regression model and add fit to the this graph
 
@@ -880,9 +875,9 @@ scatter_plot<- ggplot(data = data, aes(x = x1, y = x4, color = wt5
 scatter_plot  
 ```
 
-```{R}
+```{r}
 testdf <- data.frame(x2,x1,data$wt5)
-print(testdf)
+
 ```
 
 ```{r}
@@ -992,7 +987,7 @@ test_scaled <- df.house_scaled %>% slice(-indices)
 ```
 
 
-### Fit the Network
+**Fit the Network**
 ```{r, include=FALSE}
 set.seed(42)
 n <- names(train_scaled)
@@ -1011,7 +1006,7 @@ pred <- pred_scaled$net.result * (max(df.house$data.Price) - min(df.house$data.P
 #pred
 ```
 
-```{r}
+```{r, include=FALSE}
 plot(test$data.Price, pred, col='blue', pch=16, ylab = "predicted Price NN", xlab = "real Price")
 abline(0,1)
 ```
@@ -1024,7 +1019,7 @@ sqrt(mean((test$data.Price - pred)^2))
 ## ANN - caret package
 ```{r message=FALSE, warning=FALSE, eval = F}
 
-str(df.house)
+#str(df.house)
 
 set.seed(42)
 tuGrid <- expand.grid(.layer1=c(1:4), .layer2=c(0,2), .layer3=c(0))
@@ -1032,7 +1027,7 @@ tuGrid <- expand.grid(.layer1=c(1:4), .layer2=c(0,2), .layer3=c(0))
 trCtrl <- trainControl(
   method = 'repeatedcv', 
   number = 5, 
-  repeats = 10, 
+  repeats = 5, 
   returnResamp = 'final'
 )
 
@@ -1060,8 +1055,8 @@ plot(models$finalModel)
 # Week 6 - Agent-based Modelling and Approximate Bayesian Computation
 
 ## Result
-```{r pressure, echo=FALSE, fig.cap="ABM", out.width = '100%'}
-knitr::include_graphics("ABM_1.PNG")
+```{r, echo=FALSE, fig.cap="ABM", out.width = '100%'}
+#knitr::include_graphics("ABM_1.PNG")
 ```
 
 ```{r pressure, echo=FALSE, fig.cap="ABM", out.width = '100%'}
