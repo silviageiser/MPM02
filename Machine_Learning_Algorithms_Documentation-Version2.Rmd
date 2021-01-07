@@ -65,6 +65,7 @@ knitr::opts_chunk$set(echo = TRUE)
 ```{r}
 data <- read.csv('german_housing_cleaned.csv',header =T, encoding='UTF-8')
 head(data)
+unique(data$Type)
 ```
 
 **Inspection of all variables**
@@ -787,6 +788,49 @@ ggplot(data = glm.binary,
 
 
 # Week 4 - Support Vector Machines
+```{r}
+library(dplyr)
+library(caret)
+library(e1071)
+library(data.table)
+```
+
+```{r}
+data <- fread('german_housing_cleaned.csv',header =T, encoding='UTF-8')
+data$log.price <- log(data$Price)
+data$log.living <- log(data$Living_space)
+data$log.rooms <- log(data$Rooms)
+data$log.lot <- log(data$Lot)
+data$Condition <- factor(data$Condition)
+
+house <- data %>% filter(Type == "Multiple dwelling" | Type == "Villa")
+
+house[,is.multi := as.factor(Type == 'Multiple dwelling')]
+split80 <- round(nrow(house)* 0.80)
+train <- house[1:split80,]
+test <- house[(split80 + 1):nrow(house),]
+dim(train)
+dim(test) 
+
+ctrl <- trainControl(method = 'cv')
+
+
+model <- train(is.multi ~ Price + Living_space,
+               data = train, method = 'svmLinear2', trControl = ctrl)
+print(model)
+print(predict(model, newdata = test))
+
+house1 <- expand.grid(Price = seq(min(house$Price),max(house$Price), 1000000),Living_space = seq(min(house$Living_space), max(house$Living_space),1))
+
+house1$is.multi <- predict(model, newdata = house1)
+
+g <- ggplot(mapping = aes(Price, Living_space)) +
+  geom_raster(mapping = aes(fill = is.multi), data = house1, alpha = 0.5) +
+  geom_point(mapping = aes(color = is.multi), data = train)
+print(g)
+```
+
+
 ```{r}
 data$wt5 <- factor(ifelse(data$Price > 600000, 1, -1))
 data$wt5 = as.factor(data$wt5)
