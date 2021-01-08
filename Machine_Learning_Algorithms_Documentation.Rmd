@@ -4,39 +4,9 @@ author: "Geiser, Gruen, Hefti, Kuster"
 date: "08/01/2021"
 output: word_document
 ---
-<style type="text/css">
-
-body{ /* Normal  */ 
-      font-size: 8px;
-  }
-td {  /* Table  */
-  font-size: 5px;
-}
-h1.title {
-  font-size: 24px;
-  color: DarkRed;
-}
-h1 { /* Header 1 */
-  font-size: 12px;
-  color: black;
-}
-h2 { /* Header 2 */
-    font-size: 10px;
-  color: black;
-}
-h3 { /* Header 3 */
-  font-size: 10px;
-  font-family: "Times New Roman", Times, serif;
-  color: black;
-}
-code.r{ /* Code block */
-    font-size: 5px;
-}
-pre { /* Code block - determines code spacing between lines */
-    font-size: 5px;
-}
-</style>
-
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
 **Data preparation**
 **Dataset - German Housing Data**
 Dataset of housing prices in the german market, scraped from Immo Scout24 and made available on https://www.kaggle.com/scriptsultan/german-house-prices
