@@ -2,72 +2,54 @@
 title: "Machine Learning Algorithms Documentation"
 author: "Geiser, Gruen, Hefti, Kuster"
 date: "08/01/2021"
-output:
-  word_document:
-    toc: yes
-    toc_depth: '2'
-  html_document:
-    number_sections: yes
-    toc: yes
-    toc_depth: 2
-    toc_float: yes
-  pdf_document:
-    toc: yes
-    toc_depth: '2'
+output: word_document
 ---
 <style type="text/css">
 
 body{ /* Normal  */ 
-      font-size: 12px;
+      font-size: 8px;
   }
 td {  /* Table  */
-  font-size: 8px;
+  font-size: 5px;
 }
 h1.title {
-  font-size: 38px;
+  font-size: 24px;
   color: DarkRed;
 }
 h1 { /* Header 1 */
   font-size: 12px;
-  color: Black;
+  color: black;
 }
 h2 { /* Header 2 */
-    font-size: 12px;
-  color: Black;
+    font-size: 10px;
+  color: black;
 }
 h3 { /* Header 3 */
-  font-size: 12px;
+  font-size: 10px;
   font-family: "Times New Roman", Times, serif;
-  color: Black;
+  color: black;
 }
 code.r{ /* Code block */
-    font-size: 12px;
+    font-size: 5px;
 }
 pre { /* Code block - determines code spacing between lines */
-    font-size: 12px;
+    font-size: 5px;
 }
 </style>
 
 **Data preparation**
-
 **Dataset - German Housing Data**
+Dataset of housing prices in the german market, scraped from Immo Scout24 and made available on https://www.kaggle.com/scriptsultan/german-house-prices
+The dataset contains 10'318 observations with 20 variables (containing continuous, categorical variables as well as count data)
 
-Origin data set cleaned:
+**For the sake of keeping the document short, some code or/and output will not be shown in the document**
 
-Variable rooms, bathrooms, bedrooms, floors, garages, Year_built, Year_renovated changed from decimal to integer
-Subset with buildings up to 20 rooms for our analysis created Rooms with .5 rounded up
-Levels of the variable Energy_source and Garagetype transformed.
+Origin data set cleaned and graphically analysed with different plots (scatterplots, boxplots, barplots etc.), variables transformed to integers and/or count data, right skewed variables log transformed and added to the dataframe.
 
-**Load of the cleaned dataset**
-Read in the data & have a short glance with the head() function to get an idea of the dataset
-
-```{r}
+```{r, include = F}
 data <- read.csv('german_housing_cleaned.csv',header =T, encoding='UTF-8')
 ```
 
-**Inspection of all variables**
-
-The dataset contains 10'318 observations with 20 variables (containing continuous, categorical variables as well as count data)
 ```{r, include = F}
 str(data)
 summary(data)
@@ -75,10 +57,7 @@ colnames(data)
 apply(data,2,function(x)sum(is.na(x)))
 ```
 
-**Analysis of the distribution of the variables: 'Price', 'Living_space', 'Rooms' and 'Lot'**
-
-Firstly we want to find out the distribution of the numeric variables. As seen below the variables 'Price', 'Living_space', 'Rooms', 'Lot' have a right skewed distribution and therefore have to be log transformed in the next step.
-```{r, echo = F}
+```{r, include = F}
 par(mfrow = c(2,2))
 
 #Price
@@ -94,13 +73,7 @@ hist(data$Rooms)
 plot(density(data$Lot))
 ```
 
-Result: The variables are right skewed
-
-
-**Log Transformation of variables**
-
-Therefore we will use the Log Transformation of the variables 'Price', 'Living_space', 'Rooms', 'Lot' to get a nearly normal distribution
-``` {r, echo = F}
+``` {r, include = F}
 par(mfrow = c(2,2))
 
 #Price
@@ -120,10 +93,8 @@ lot.log <- density(log(data$Lot))
 plot(lot.log)
 ```
 
-**Add new columns with log transformed variables price, living space and rooms**
 
-In order to easify access to the log transformed variables new columns are created.
-```{r}
+```{r, include=F}
 data1 <- data
 data1$log.price <- log(data1$Price)
 data1$log.living <- log(data1$Living_space)
@@ -133,7 +104,7 @@ data1$log.lot <- log(data1$Lot)
 
 # Week 1 - Linear Models
 
-## Data Visualisation and Linear regressions
+**Data Visualisation and Linear regressions**
 
 ```{r, message=F, error=F, warning=F, include = F}
 options(scipen=999) #block scientific notation
@@ -141,10 +112,9 @@ library(ggplot2)
 attach(data)
 ```
 
-
 ## Scatterplot with regression line for log(Price) against log(Living_space)
 
-We plot the response variable "Price" against the predictor "Living_Space" to get a first impression. The plot displays that there is may a positive correlation between the two variables. We further investigate this by a fitting a simple linear regression.
+We plot the response variable log(Price) against the predictor log(Living_Space) to get a first impression. The plot displays that there is may a positive correlation between the two variables. We further investigate this by a fitting a simple linear regression.
 ```{r, message=F, echo = F}
 #Living_space
 ggplot(data, aes(log(Living_space), log(Price))) + geom_point() + geom_smooth(method = lm, se = T, color = 'red') + ggtitle('Scatterplot with regression line for log(Price) against log(Living_space)')
@@ -160,7 +130,7 @@ coef(lm.log.price_living)
 exp(coef(lm.log.price_living))
 ```
 
-Result: very significant p-values for log.price ~ log.living. We can assume that the variable log.living has an effect on the dependent variable log.price with a positive correlation, meaning: if the log.living parameter increases in value also the Price of the property will increase. 
+**Result:** very significant p-values for log.price ~ log.living. We can assume that the variable log.living has an effect on the dependent variable log.price with a positive correlation, meaning: if the log.living parameter increases in value also the Price of the property will increase. 
 
 Due to the log transformation of the variables we have to exponentiate the values before the interpretation. For the intercept exp(8.17522)= 3551.84 and the slope exp(0.9028)=2.47, looking the p-values, which are very small, we have a strong evidence that the slope of log.living is not flat and therefore the variable has an effect on the log.price variable.
 
@@ -171,16 +141,13 @@ lm.log.price_living_type <- lm(data = data1, log.price ~ log.living + Type)
 summary(lm.log.price_living_type)
 ```
 
-Result: due to the small p-values of the intercept and of the different types we have a strong evidence that the different types have an effect on the log.price ~ log.living. Only Type 'Castle' and Type 'Duplex' seem not having an effect. Because of the log transformation of the independent and dependent variables we have to interpret an increase of living space by 1% with an increase of the price variable by about 0.99% (according to the slope). The coefficient of log.living is the estimated elasticity of price with respect to living space. 
+**Result:** due to the small p-values of the intercept and of the different types we have a strong evidence that the different types have an effect on the log.price ~ log.living. Only Type 'Castle' and Type 'Duplex' seem not having an effect. Because of the log transformation of the independent and dependent variables we have to interpret an increase of living space by 1% with an increase of the price variable by about 0.99% (according to the slope). The coefficient of log.living is the estimated elasticity of price with respect to living space. 
 
 ## Linear regression of log.price against log.living including the 'Type' interaction
 ```{r}
 ##linear model
 lm.log.price_living_type2 <- lm(data = data1, log.price ~ log.living * Type)
-```
-
-**Measures of fit**
-```{r}
+##Measures of fit
 formula(lm.log.price_living_type)
 #r.squared
 summary(lm.log.price_living_type)$r.squared
@@ -199,10 +166,14 @@ If we compare the R^2 and adj. R^2 of the additive and the multiplicative model 
 
 ## Fitted values
 The function fitted() can be used to extract the predicted values for the existing observations
-```{r, warning=F, error=F, message = F, include=F}
+```{r, warning=F, error=F, message = F, results= 'hide'}
 attach(data)
 #lm.log.price_living
 fitted.price_living <- fitted(lm.log.price_living)
+```
+
+```{r, eval = F}
+#generate plot
 plot(log(Price)~ log(Living_space), main = 'Model log(Price) ~ log(Living_space)', col = 'navy', pch = 16)
 points(fitted.price_living ~ log(Living_space), col = 'red', pch = 16)
 abline(lm.log.price_living, col = 'yellow', lwd = 2.5)
@@ -217,6 +188,9 @@ set.seed(100)
 id <- sample(x = 1:10318, size = 5)
 resid.price_living[id]
 fitted.price_living[id]
+```
+
+```{r, echo = F}
 plot(log(Price) ~ log(Living_space), main = 'Model log(Price) ~ log(Living_space)', col = 'navy', pch = 16)
 abline(lm.log.price_living, col = 'green', lwd = 2.5)
 points(log(Price) ~ log(Living_space), data = data1[id, ], col = 'red', pch = 4, lwd = 5)
@@ -240,7 +214,9 @@ summary(lm.train)
 #predictions
 pred.new.living <- predict(object = lm.train, newdata = test)
 pred.new.living.CI <- predict(object = lm.train, interval = 'prediction', newdata = test)
+```
 
+```{r, echo = F}
 plot(log.price ~ log.living, data = train, main = 'Prediction with Model log(Price) ~ log(Living_space)', col = 'navy', pch = 16)
 segments(x0 = test$log.living, x1 = test$log.living,
          y0 = pred.new.living.CI[, 'lwr'], y1 = pred.new.living.CI[, 'upr'], lwd = 2, col = 'green')
@@ -252,36 +228,36 @@ In this plot we see the estimated regression line (in yellow) with the estimated
 
 
 ## Testing the effect of a categorical variable and post-hoc contrasts 
-```{r, warning=F, message=F}
+```{r, warning=F, message=F, echo = F}
 condition.box.with_outlier <- ggplot(data1, aes(x=Condition, y=log.price)) + geom_boxplot(outlier.colour = 'red')+ theme(axis.text.x = element_text(angle = 90)) + ggtitle('Boxplots of log(Price) against Condition with outliers in red')
 plot(condition.box.with_outlier)
-#model
+```
+
+**Model**
+```{r}
 lm.price_condition.1 <- lm(log.price ~ Condition, data = data1)
 summary(lm.price_condition.1)
-#coefficients
-coef(lm.price_condition.1)
+
 aggregate(log.price ~Condition, 
           FUN = mean, data = data1)
 #model without slope, only intercept
 lm.price_condition.0 <- lm(log.price ~ 1, data = data1)
 summary(lm.price_condition.0)
-coef(lm.price_condition.0)
+```
+
+R uses "treatment contrasts" and therefore the Intercept refers to the first in alphabetical order, here "Null". The other coefficients represent the difference. Whilst considering the boxplots, it seems rather suprising that 'as new' has the lowest mean price value. Condition 'as new', 'dilapidated', 'first occupation', 'maintained' to have a strong effect on the response variable. The results are very suprising, as new condition negatively influences the price and condition dilapidated increases the price. The results obtained seem weak, represented in the adj. R-squared with 0.07083.
+```{r}
 #Anova
 anova(lm.price_condition.0, lm.price_condition.1)
+```
+
+To further test the predictor an lm is built without slopes for every type and then tested by an F-Test (Anova). Surprsingly, the Model with slopes for the Type seems to perform better as indicated through a lower RSS value.
+```{r, warning=F, error=F, message =F}
 #post-hoc contrasts
 library(multcomp)
 ph.test.1 <- glht(model = lm.price_condition.1, linfct = mcp(Condition = c('refurbished - dilapidated = 0')))
 summary(ph.test.1)
 ```
-R uses "treatment contrasts" and therefore the Intercept refers to the first in alphabetical order, here "Null". The other coefficients represent the difference.
-
-Whilst considering the boxplots, it seems rather suprising that 'as new' has the lowest mean price value.
-
-Condition 'as new', 'dilapidated', 'first occupation', 'maintained' to have a strong effect on the response variable. The results are very suprising, as new condition negatively influences the price and condition dilapidated increases the price.
-
-The results obtained seem weak, represented in the adj. R-squared with 0.07083.
-
-To further test the predictor an lm is built without slopes for every type and then tested by an F-Test (Anova). Surprsingly, the Model with slopes for the Type seems to perform better as indicated through a lower RSS value. 
 
 The post-hoc contrasts is used to test whether 'dilapidated' and 'refurbished' differ. The outcome states that 'dilapidated' increases the price. This confirms also the visual analysis of the boxplots, but still is suprising as explained above.
 
@@ -304,7 +280,7 @@ Drop1 function performes automatically or each variable presence in the model an
 
 ## Polynomials
 By including polynomials (e.g. x1 + x1^2) we can model non linear relationships with a Linear Model.
-```{r, message = F, error = F, warning=F}
+```{r, message = F, error = F, warning=F, include=F}
 library(ggplot2)
 attach(data1)
 ``` 
@@ -312,15 +288,15 @@ attach(data1)
 **Graphical analysis** 
 
 log(Price) ~ log(Living_space)
-```{r}
+```{r, echo = F}
 gg.log.price_log.living <- ggplot(data1,mapping = aes(y = log.price, x = log.living)) + geom_point()
 gg.log.price_log.living + geom_smooth()
 ```
+
 The graphical analysis shows a non-linear relationship for the predictor living_space.
 
-#model with a linear effect for log.living with log.rooms
+**Model with a linear effect for log.living with log.rooms**
 ```{r}
-#model with a linear effect for log.living
 lm.living.1 <- lm(log.price ~ log.living + log.rooms)
 summary(lm.living.1)
 ```
@@ -328,8 +304,8 @@ summary(lm.living.1)
 Both predictors show a strong effect on the response variable price. Now we want to build a model with a quadratic effect for living space.
 
 
-#model with a cuadratic effect for log.living
-```{r}
+**Model with a cuadratic effect for log.living**
+```{r, results = 'hide'}
 #model with a quadratic poly
 lm.living.2 <- lm(log.price ~ log.rooms + poly(log.living, degree = 2))
 summary(lm.living.2)
@@ -337,25 +313,27 @@ summary(lm.living.2)
 
 Now that we have added the quadratic effect(with degree = 2). The two models can be compared by an F-Test.
 
-#Compare the two models by an F-Test
+**Compare the two models by an F-Test**
 ```{r}
 #test in quadratic
 anova(lm.living.1, lm.living.2)
 ```
 
 The second model with a quadratic effect for living space has a better performance, as the RSS is lower than the one from the model without a quadratic effect. Additionally, the p-value indicates that the second model performs better.
-```{r}
+```{r, echo =F}
 #plot
 gg.log.price_log.living + geom_smooth(method = 'lm', formula = y ~poly(x, degree = 2))
 ``` 
 
 The quadratic fit seems to model the non-linear relationship of living space quite well. Nevertheless, we try to fit a cubic poly.
 
-#model with a cubic poly
-```{r}
+**Model with a cubic poly**
+```{r, results = 'hide'}
 #model with a cubic poly
 lm.living.3 <- lm(log.price ~ log.rooms + poly(log.living, degree = 3))
 summary(lm.living.3)
+```
+```{r}
 anova(lm.living.2, lm.living.3)
 ```
 
@@ -369,8 +347,8 @@ library(mgcv)
 ``` 
 **Graphical analysis** 
 
-#log(Price) ~ log(Rooms)
-```{r}
+**log(Price) ~ log(Rooms)**
+```{r, echo = F}
 #log(Price) ~ log(Rooms)
 gg.log.price_log.rooms <- ggplot(data1, mapping = aes(y = log.price, x = log.rooms)) + geom_point()
 gg.log.price_log.rooms + geom_smooth()
@@ -384,17 +362,22 @@ The graphical analysis shows a non-linear relationship for the predictor log.roo
 attach(data1)
 gam.log.price.log.rooms <- gam(log.price ~ s(log.rooms))
 summary(gam.log.price.log.rooms)
+```
+
+```{r,echo=F}
 plot(gam.log.price.log.rooms, residuals = TRUE, cex = 2)
 ```
 
 The GAM-model has an edf of 7.888 (so degree = almost 8). This shows as that the GAM function choose a polynomial of 7.888 
 
 
-**GAMs for log(Price) ~ log(Living_space) + s(log.rooms) + s(log(Garages))
+## GAMs for log(Price) ~ log(Living_space) + s(log.rooms) + s(log(Garages))
 ```{r}
 gam.log.price.log.living <- gam(log.price ~ log.living + s(log.rooms) + s(log(Garages)))
 summary(gam.log.price.log.living)
+```
 
+```{r, echo=F}
 plot(gam.log.price.log.living, residuals = TRUE, select = 1)
 ```
 
@@ -407,6 +390,7 @@ The GAM-model has an edf of 4.964 (so degree = almost 5) for log.rooms and an ed
 ## GLM - Possion Model
 
 **Count Data**
+
 With the GLM function and the family "possion" we could generalize the Linear model.
 ```{r}
 glm.rooms <- glm(Rooms ~ Type, family = "poisson", data = data)
@@ -414,13 +398,14 @@ summary(glm.rooms)
 ```
 
 ```{r}
+#exponentiate coefficients
 exp(coef(glm.rooms)) 
 ```
 
 Before the Interpretation of the coefficients of a Poisson model the inverse, the exponential, is needed due to use of the link function (log() function). The Interpretation of the coefficients are: A house with no Type information has around 7.6 rooms and e.g. Villa has ca. 15.77% more rooms (ca. 8.8 rooms)
 
 
-```{r, include = T}
+```{r, include = T, warning= F, message=F, error=F}
 #to double check and convince ourselves as single house (type) is checked and predicted
 library(tidyverse)
 #which(data$Type == "")
@@ -436,7 +421,7 @@ fitted.room * exp(coef(glm.rooms)["TypeVilla"])
 This house with no specific Type, according to the model, is expected to have 7.607 Rooms. If we check the number of rooms after setting the Type to e.g. Villa the model expect 8.807 rooms and this is exactly the same number of rooms we get for the fitted room times the exponential estimated for Villa.
 
 
-**data simulation from the glm count data model**
+## Data simulation from the glm count data model
 ```{r, include = F}
 #data simulation from the glm model (glm.rooms)
 set.seed(99)
@@ -451,13 +436,14 @@ tail(sim.data.rooms.Poisson)
 
 
 **Visualization of the glm count data model**
-``` {r}
+``` {r, echo = F}
 ggplot(mapping = aes(y = sim.data.rooms.Poisson$sim_1, x = data$Type)) +
 geom_boxplot(outlier.colour = 'red') +
 geom_hline(yintercept = 0) +
 ylab("simulated no. of rooms\n(assuming Poisson dist)") +
 xlab("type") + theme(axis.text.x = element_text(angle = 90))
 ```
+
 The results of the simulation seem to agree with the observed data (no negative values, similar variation, only integer values).
 
 
@@ -467,7 +453,7 @@ glm.sq.price <- glm(cbind(Price, Living_space)~ State,
                     family = "binomial",
                     data = data)
 summary(glm.sq.price)
-exp(coef(glm.sq.price))
+#exp(coef(glm.sq.price))
 ```
 
 ```{r, echo = F}
@@ -528,23 +514,21 @@ head(sim.data.rooms.Poissonwt2)
 tail(sim.data.rooms.Poissonwt2)
 ```
 
-``` {r}
+``` {r, echo = F}
 library(ggplot2)
 ggplot(mapping = aes(y = sim.data.rooms.Poissonwt2$sim_1,
 x = data$wt2)) +
-geom_boxplot() +
+geom_boxplot(outlier.colour = 'red') +
 geom_hline(yintercept = 0) +
 ylab("simulated no. of rooms\n(assuming Poisson dist)") +
 xlab("Groups")
 ```
 
 
-**GLM - Binary Model**
-
-Let’s fit a binary model
+## GLM - Binary Model
 
 Let’s fit a logistic regression model and add fit to the graph
-``` {r}
+``` {r, echo = F}
 data$MillionYes <- ifelse(data$Price > 1000000, 1, 0)
 ggplot(data = data,
        mapping = aes(y = MillionYes,
@@ -567,8 +551,8 @@ library(e1071)
 library(data.table)
 ```
 
+**load data and filter rows with variable 'Type? == 'Multiple dwelling' or 'Villa'**
 ```{r, message=F, warning=F}
-#load data and filter rows with variable 'Type? == 'Multiple dwelling' or 'Villa'
 svm.data <- fread('german_housing_cleaned.csv',header =T, encoding='UTF-8')
 house <- svm.data %>% filter(Type == "Multiple dwelling" | Type == "Villa")
 
@@ -576,14 +560,14 @@ house <- svm.data %>% filter(Type == "Multiple dwelling" | Type == "Villa")
 house[,is.multi := as.factor(Type == 'Multiple dwelling')]
 ```
 
-Split dataset
+**Split dataset**
 ```{r}
 split80 <- round(nrow(house)* 0.80)
 train <- house[1:split80,]
 test <- house[(split80 + 1):nrow(house),]
 ```
 
-Fit SVM and do a cross validation with cost 0.25, 0.5, 1.00
+**Fit SVM and do a cross validation with cost 0.25, 0.5 and 1.00**
 ```{r}
 set.seed(1)
 model <- train(is.multi ~ Price + Living_space,
@@ -592,7 +576,7 @@ print(model)
 ```
 With the method = 'svmLinear2' the model will be tested with different cost values. As the model with cost = 0.5 has the highest accuracy (0.9329385)the prediction will be made with this parameters.
 
-Prediction with SVM model with cost = 0.5
+**Prediction with SVM model with cost = 0.5**
 ```{r, include = F}
 print(predict(model, newdata = test))
 ```
@@ -609,15 +593,17 @@ house1 <- expand.grid(Price = seq(min(house$Price),max(house$Price), 10000),Livi
 house1$is.multi <- predict(model, newdata = house1)
 ```
 
-Plot SVM
-```{r}
+**Plot SVM**
+```{r, echo = F}
 g <- ggplot(mapping = aes(Living_space, Price)) +
   geom_raster(mapping = aes(fill = is.multi), data = house1, alpha = 0.5) +
   geom_point(mapping = aes(color = is.multi), data = train)
 print(g)
 ```
+
 As the plot clearly shows there is a line -1 and 1 classification. In color turqoise we see all the objects that fall into category 'Multiple dwelling' and the rose colored area with the dots are of the Type 'Villa'. The dots in the other color then the background are mismatched points that fall in the cost of 0.5.
 
+## SVM with kernel = 'radial'
 
 ```{r, include = F}
 data$wt5 <- factor(ifelse(data$Price > 600000, 1, -1))
@@ -630,9 +616,8 @@ x2 <- scales::rescale(data$Year_built, to=c(0,1))
 ```
 
 
-
 **Plot x2 vs. x1, colored by y**
-``` {r, echo = F}
+``` {r, echo = F, warning=F}
 scatter_plot<- ggplot(data = data, aes(x = x1, y = x2, color = wt5
                               )) + 
     # Add a point layer
@@ -672,7 +657,7 @@ sd(accuracy)
 
 The accuracy mean is 0.6656 with a standard deviation of 0.00776, what will tell us that approx. 66,6% of the data will be classified correctly.
 
-```{r}
+```{r, echo = F}
 plot(svm_model,testset)
 ```
 
@@ -683,7 +668,7 @@ plot(svm_model,testset)
 ## ANN - neuralnet package
 
 preparing data for neuralnet
-```{r}
+```{r, warning = F, message = F}
 library(neuralnet)
 ```
 
@@ -703,7 +688,7 @@ mean(data$Price)
 ```
 
 **Prepare for Training**
-```{r, include = F}
+```{r, results = 'hide'}
 set.seed(123)
 indices <- createDataPartition(df.house$data.Price, p = 0.8, list = FALSE)
 train <- df.house %>% slice(indices)
@@ -711,7 +696,7 @@ test <- df.house %>% slice(-indices)
 boxplot(train$data.Price, test$data.Price, df.house %>% sample_frac(0.2) %>% pull(data.Price))
 ```
 
-```{r, include = F}
+```{r, results = 'hide'}
 max <- apply(df.house, 2, max)
 min <- apply(df.house, 2, min)
 df.house_scaled <- as.data.frame(scale(df.house, center = min, scale = max - min))
@@ -735,7 +720,7 @@ pred <- pred_scaled$net.result * (max(df.house$data.Price) - min(df.house$data.P
 #pred
 ```
 
-```{r, eval = F}
+```{r, eval = F, include = F}
 plot(test$data.Price, pred, col='blue', pch=16, ylab = "predicted Price NN", xlab = "real Price")
 abline(0,1)
 ```
@@ -784,17 +769,10 @@ plot(models$finalModel)
 
 ```{r, eval = F}
 rm(list = ls(all = TRUE)) # clean the memory
+install.packages("devtools")
+devtools::install_github("PredictiveEcology/NetLogoR")
 
-
-#install.packages("devtools")
-
-#devtools::install_github("PredictiveEcology/NetLogoR")
-
-#worked now
-
-
-
-
+#libraries
 library(NetLogoR)
 library(stringr)
 library(ggplot2)
@@ -803,8 +781,6 @@ library(minpack.lm)
 
 for (i in 40:100){
   for (j in 1:20) {
-    
-    
     ### 1. DEFINE THE SPACE AND AGENTS ###
     
     # simulations parameters
@@ -832,9 +808,6 @@ for (i in 40:100){
     
     plot(w1, axes = 0, legend = FALSE, par(bty = 'n')) # initialize graphics by displaying world patches
     points(t1, col = of(agents = t1, var = "color"), pch = 20) # initialize graphics by displaying agents
-    
-    
-    
     
     
     ### 2. RUN THE SIMULATION TIME LOOP ###
@@ -867,7 +840,6 @@ for (i in 40:100){
       plot_data_out<-rbind(plot_data_out, tmp_data) # store in a matrix
       
     }
-    
     
     
     ### 3. PLOTTING AND FITTING SIMULATED DATA ###
@@ -909,14 +881,11 @@ for (i in 40:100){
     #  ylab("Agents contaminated") +
     #  geom_point(data=df, aes(y=y, x=x), colour="black") +
     #  geom_line(data = fit_df, colour="red")
-    
-    
-    
     }}
 ```
 
-#ABC Code 
-```{r}
+## ABC Code 
+```{r, eval = F}
 set.seed(2)
 rm(list = ls(all = TRUE))
 #install.packages("abc")
@@ -940,4 +909,21 @@ res <- abc(target=obs_data,
 
 plot(res, param=sim_param)
 write.table(res$adj.values,"out_abc.csv", sep=",", row.name=FALSE)
+```
+
+
+```{r, echo=FALSE, fig.cap="Prior and Euclidean distances_Agents", out.width = '100%'}
+knitr::include_graphics("Rplotsagents1.PNG")
+```
+
+```{r, echo=FALSE, fig.cap="Posterior with neuralnet and Residuals from nnet()_Agents", out.width = '100%'}
+knitr::include_graphics("Rplotsagents2.PNG")
+```
+
+```{r, echo=FALSE, fig.cap="Prior and Euclidean distances_Barplots", out.width = '100%'}
+knitr::include_graphics("Barplot1.PNG")
+```
+
+```{r, echo=FALSE, fig.cap="Posterior with neuralnet and Residuals from nnet()_Barplots", out.width = '100%'}
+knitr::include_graphics("Barplot2.PNG")
 ```
