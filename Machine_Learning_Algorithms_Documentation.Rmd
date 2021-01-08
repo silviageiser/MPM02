@@ -608,7 +608,8 @@ The accuracy mean is 0.7770 with a standard deviation of 0.0044, what will tell 
 ```{r, echo = F}
 plot(svm_model,testset)
 ```
-As we can see in this plot the classification use
+
+As we can see in this plot we get a nonlinear classification, because we use a radial basis function kernel in our SVM code.
 
 
 # Week 5 - Neural Networks
@@ -712,17 +713,20 @@ plot(models)
 plot(models$finalModel)
 ```
 
-```{r, echo=FALSE, fig.cap="neuralnet", out.width = '100%'}
-knitr::include_graphics("neuralnet_final_model.png")
-```
-
 ```{r, echo=FALSE, fig.cap="Plot neuralnet", out.width = '100%'}
 knitr::include_graphics("plot_neuralnet_model.png")
 ```
 
-All the parameter combinations listed in expand.grid() were used to create and test a model. For the test the repeated cross-validation (5-Fold cross-validation repeated 5 times) were used to identify the final model with the best cross validation performance. The final model has...
+```{r, echo=FALSE, fig.cap="neuralnet", out.width = '100%'}
+knitr::include_graphics("neuralnet_final_model.png")
+```
+
+For the interpretation “neuralnet” from caret package is used. Thus because, all the parameter combinations listed in expand.grid() were used to create and test a model. For the test the repeated cross-validation (5-Fold cross-validation repeated 5 times) were used to identify the final model with the best cross validation performance. The final model has 2 Neurons in layer and 0 in layer 2 (no layer 2).
 
 # Week 6 - Agent-based Modelling and Approximate Bayesian Computation
+
+
+Here we define a Agent-based model that represents a real-world situation. After that we generate synthetic data with different parameters in a for loop. Agents(40-100), Pubs(1-20). The generated data will be saved in the file summary_stat.csv which will be used for the ABC in the next part.
 
 ```{r, eval = F}
 rm(list = ls(all = TRUE)) # clean the memory
@@ -841,7 +845,10 @@ for (i in 40:100){
     }}
 ```
 
-## ABC Code 
+## Approximate Bayesian Computation (ABC) Code
+
+In a next step we take some data observed in the real world and our Data Simulation from part one, which is saved in the summary_stat.csv. Then we want to find with Approximate Bayesian Computation (ABC) the parameters, which generated similar data in Part one with ABM to the data observed in the real world.
+
 ```{r, eval = F}
 set.seed(2)
 rm(list = ls(all = TRUE))
@@ -868,9 +875,12 @@ plot(res, param=sim_param)
 write.table(res$adj.values,"out_abc.csv", sep=",", row.name=FALSE)
 ```
 
+We get one plot output for the parameter number of agents and one plot output for the parameter number of pubs with prior and posterior distributions. We also get a table with the best parameter combinations(out_abc.csv). We repeated this code many times and we got always different best parameter combinations. But mostly the best paramters for number of agents was between 60 and 70 with numbers of pubs between 10 and 13 as we can see in the file out_abc.csv
+
 ```{r, echo=FALSE, fig.cap="ABC_Output", out.width = '100%'}
-knitr::include_graphics("abc.PNG")
+knitr::include_graphics("abc_out.PNG")
 ```
+
 
 ```{r, echo=FALSE, fig.cap="Prior and Euclidean distances_Agents", out.width = '100%'}
 knitr::include_graphics("Rplotsagents1.PNG")
@@ -887,3 +897,24 @@ knitr::include_graphics("Barplot1.PNG")
 ```{r, echo=FALSE, fig.cap="Posterior with neuralnet and Residuals from nnet()_Barplots", out.width = '100%'}
 knitr::include_graphics("Barplot2.PNG")
 ```
+
+
+# Conclusion
+
+**Week 1**
+Through applying a simple linear regression to our data, we found out that the living space has a strong influence on the price of house. This also makes sense very much, if you think of the real life, where the price always depends much on the square meters of a residence. Further, the analysis showed that by adding the Type of a house (e.g. Villa) the model can be slightly improved leading us to the conclusion that also the Type has an effect on the price.Lastly, by an F-Test it could be confirmed that a model with levels for the condition of the house performs better and hence, influences the price of the house. The post-hoc contrast then showed that the condition refurbished and dilapidated differ in price (as also visible in the boxplots). However, in real life this seems to make no sense that a dilapidated house is priced higher.
+
+**Week 2**
+The graphical inspection of the predictor living space with the response variable price displayed that there might is a quadratic fit for living space. Therefore, a quadratic term for living space has been modelled. Then an F-Test confirmed the expected outcome that a model with a quadratic term better fits the data. Further, it was found out that adding a cubic term for living space does not improve the model but adds more complexity to it. Hence, the quadratic model seems to have the best fit. Secondly, the predictor rooms also follows a non-linear relationship. The visual analysis showed that there is might a more complex relationship than before, which can’t be modelled by a quadratic or cubic term. Therefore, the GAM-model has been chosen in order to find out the right degree of complexity. The GAM-model states that the best degree of complexity is 8. Whilst comparing with the initial plot these seems to be a valid result.
+
+**Week 3**
+In the third section a GLM-model was fitted to the count data rooms as response variable and the type as predictor. The outcome states that a house with no type has 7.6 rooms and the villa has 8.8 rooms. The simulation of the fitted GLM-model confirmed this outcome.Furthermore, a GLM-model with binomial data factor variable (i.e. cbind(Price ~ Living_space), State) has been compiled. The result showed an overdispersion, indicated by the difference in residual deviance and the degrees of freedom. Consequently, a quasibinomial has been built to try to handle this overdispersion, as the variance increases faster than linearly. Additionally, the p-value showed that there is no evidence that the predictor State influences the price. Moreover, a binary model with the response variable house prices over 1 Mio has been created with the predictor living space. Not surprisingly, the result showed that with increasing living space the probability for the house to be priced over 1 million gets higher.
+
+**Week 4**
+With the help of a SVM, we aimed to classify the houses into multiple dwelling and villa. The analysis shows that this is best modelled with a cost parameter of 0.5, as it has a prediction accuracy of 0.93. Thus, the classification works quite good, which is also visible in the plot of the analysis.In a second SVM, it was aimed to classify a binary variable. Therefore, again the binary variable house price over 1 million was used with living space and year built as predictors. As the model does follow a non-linear relationship the radial kernel has been chosen. The result of the SVM shows an accuracy of 0.77, which tells us that 77.7% of data is classified correctly.
+
+**Week 5**
+In this section a neural network has been built to predict the price for a house considering all predictors of the dataset. In a first step, two hidden layers have been chosen with 1 hidden layer with 5 neurons and 1 hidden layer with 3 neurons. To evaluate the quality of this model the RMSE has been considered. As the RMSE shows a very high value (nearly 500’000) it is assumed that the neural network does not fit the data very well. Therefore, in a second step, the different combinations of the hidden layers have been evaluated against each other by using the caret package (cross-validation). The result showed that the combination of 2 neurons in the hidden layer 1 and 0 neurons in the hidden layer 2 delivers the best result.
+
+**Week 6**
+Regarding the topic agent-based modelling we performed a computational experiment, where we simulated with ABM all the combinations of pubs and agents to receive a simulated dataset. In a next step, the simulated data is compared with the actual observations by using the ABC-method. This allows us to select the parameters with the best fit for our observations.ChallengesDuring the execution of the group work we encountered several challenges. First of all, we decided to use Github as a shared folder for our codes, which allowed us to simultaneously work on the project. However, the usage of Github with Rstudio requires some knowledge and technical skills, which is where we had difficulties especially in the beginning (e.g. merging files correctly). During the execution of the project we found out pretty fast that the models in practice do not deliver such nice results in theory and sometimes were difficult to interpret. Nevertheless, through this we had very useful group discussions and got more familiar with all the models. Lastly, the compilation of neural networks and agent-based modelling does not only require theoretical knowledge it as well requires some technical skills in Rstudio. In the beginning, we therefore encountered some difficulties to execute the codes.
