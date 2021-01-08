@@ -2,7 +2,18 @@
 title: "Machine Learning Algorithms Documentation"
 author: "Geiser, Gruen, Hefti, Kuster"
 date: "08/01/2021"
-output: word_document
+output:
+  word_document:
+    toc: yes
+    toc_depth: '2'
+  html_document:
+    number_sections: yes
+    toc: yes
+    toc_depth: 2
+    toc_float: yes
+  pdf_document:
+    toc: yes
+    toc_depth: '2'
 ---
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
@@ -625,7 +636,7 @@ mean(data$Price)
 ```
 
 **Prepare for Training**
-```{r, results = 'hide'}
+```{r, eval = F}
 set.seed(123)
 indices <- createDataPartition(df.house$data.Price, p = 0.8, list = FALSE)
 train <- df.house %>% slice(indices)
@@ -633,7 +644,7 @@ test <- df.house %>% slice(-indices)
 boxplot(train$data.Price, test$data.Price, df.house %>% sample_frac(0.2) %>% pull(data.Price))
 ```
 
-```{r, results = 'hide'}
+```{r, eval = F}
 max <- apply(df.house, 2, max)
 min <- apply(df.house, 2, min)
 df.house_scaled <- as.data.frame(scale(df.house, center = min, scale = max - min))
@@ -701,6 +712,15 @@ plot(models)
 plot(models$finalModel)
 ```
 
+```{r, echo=FALSE, fig.cap="neuralnet", out.width = '100%'}
+knitr::include_graphics("neuralnet_final_model.png")
+```
+
+```{r, echo=FALSE, fig.cap="Plot neuralnet", out.width = '100%'}
+knitr::include_graphics("plot_neuralnet_model.png")
+```
+
+All the parameter combinations listed in expand.grid() were used to create and test a model. For the test the repeated cross-validation (5-Fold cross-validation repeated 5 times) were used to identify the final model with the best cross validation performance. The final model has...
 
 # Week 6 - Agent-based Modelling and Approximate Bayesian Computation
 
@@ -848,6 +868,9 @@ plot(res, param=sim_param)
 write.table(res$adj.values,"out_abc.csv", sep=",", row.name=FALSE)
 ```
 
+```{r, echo=FALSE, fig.cap="ABC_Output", out.width = '100%'}
+knitr::include_graphics("abc.PNG")
+```
 
 ```{r, echo=FALSE, fig.cap="Prior and Euclidean distances_Agents", out.width = '100%'}
 knitr::include_graphics("Rplotsagents1.PNG")
