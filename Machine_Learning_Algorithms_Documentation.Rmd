@@ -641,7 +641,7 @@ The accuracy mean is 0.7770 with a standard deviation of 0.0044, what will tell 
 ```{r}
 plot(svm_model,testset)
 ```
-As we can see in this plot the classification use
+As we can see in this plot we get a nonlinear classification because we use a radial basis function kernel in our SVM code.
 
 
 # Week 5 - Neural Networks
@@ -747,6 +747,8 @@ plot(models$finalModel)
 
 
 # Week 6 - Agent-based Modelling and Approximate Bayesian Computation
+
+Here we define a Agent-based model that represents a real-world situation. After that we generate synthetic data with different parameters in a for loop. Agents(40-100), Pubs(1-20). The generated data will be saved in the file summary_stat.csv which will be used for the ABC in the next part.
 
 ```{r, eval = F}
 rm(list = ls(all = TRUE)) # clean the memory
@@ -881,7 +883,9 @@ for (i in 40:100){
     }}
 ```
 
-#ABC Code 
+#Approximate Bayesian Computation (ABC) Code
+
+In a next step we take some data observed in the real world and our Data Simulation from part one, which is saved in the summary_stat.csv. Then we want to find with Approximate Bayesian Computation (ABC) the parameters, which generated similar data in Part one with ABM to the data observed in the real world.
 ```{r}
 set.seed(2)
 rm(list = ls(all = TRUE))
@@ -907,3 +911,6 @@ res <- abc(target=obs_data,
 plot(res, param=sim_param)
 write.table(res$adj.values,"out_abc.csv", sep=",", row.name=FALSE)
 ```
+
+
+We get one plot output for the parameter number of agents and one plot output for the parameter number of pubs with prior and posterior distributions. We also get a table with the best parameter combinations(out_abc.csv). We repeated this code many times and we got always different best parameter combinations. But mostly the best paramters for number of agents was between 60 and 70 with numbers of pubs between 10 and 13 as we can see in the file out_abc.csv
