@@ -501,49 +501,11 @@ library(mltools)
 data[, "wt2"] <- bin_data(data$Price, bins=4, binType = "quantile")
 ```
 
-**GLM with multi-binomial data factor variable** TO CHECK!!!!!
-``` {r}
-
-glm.roomswt2 <- glm(Rooms ~ wt2,
-family = "poisson",
-data = data)
-summary(glm.roomswt2)
-
-library(nnet)
-multinom.iris <- multinom(Species ~ Sepal.Length +
-Petal.Width,
-trace = FALSE,
-data = iris)
-
-```
-
-
-``` {r}
-set.seed(99)
-sim.data.rooms.Poissonwt2 <- simulate(glm.roomswt2)
-##
-NROW(sim.data.rooms.Poissonwt2)
-
-head(sim.data.rooms.Poissonwt2)
-tail(sim.data.rooms.Poissonwt2)
-```
-
-``` {r}
-library(ggplot2)
-ggplot(mapping = aes(y = sim.data.rooms.Poissonwt2$sim_1,
-x = data$wt2)) +
-geom_boxplot() +
-geom_hline(yintercept = 0) +
-ylab("simulated no. of rooms\n(assuming Poisson dist)") +
-xlab("Groups")
-```
 
 
 **GLM - Binary Model**
 
-Let’s fit a binary model
-
-Let’s fit a logistic regression model and add fit to the graph
+Let’s fit a logistic regression model and add fit to the graph. For that purpose a binary variable has been created from the price variable. Is the Price over one Million Euro or not.
 ``` {r}
 data$MillionYes <- ifelse(data$Price > 1000000, 1, 0)
 ggplot(data = data,
@@ -575,6 +537,7 @@ house <- svm.data %>% filter(Type == "Multiple dwelling" | Type == "Villa")
 #create new variable 'is.multi' with 'TRUE' 'FALSE' to use for the SVM model 
 house[,is.multi := as.factor(Type == 'Multiple dwelling')]
 ```
+
 
 Split dataset
 ```{r}
@@ -619,11 +582,13 @@ print(g)
 As the plot clearly shows there is a line -1 and 1 classification. In color turqoise we see all the objects that fall into category 'Multiple dwelling' and the rose colored area with the dots are of the Type 'Villa'. The dots in the other color then the background are mismatched points that fall in the cost of 0.5.
 
 
+Creating another binary variable from the price variable for a classification with an SVM which use Radial Base Function. Is the Price above 600'000 Euro or not.
+
 ```{r, include = F}
 data$wt5 <- factor(ifelse(data$Price > 600000, 1, -1))
 data$wt5 = as.factor(data$wt5)
 ```
-
+Scaling for a nicer plot
 ```{r, include=F}
 x1 <- scales::rescale(data$Living_space, to=c(0,1))
 x2 <- scales::rescale(data$Year_built, to=c(0,1))
@@ -646,15 +611,16 @@ scatter_plot
 
 ```{r, include=F}
 testdf <- data.frame(x2,x1,data$wt5)
+testdf <- na.omit(testdf)
 ```
 
 **Print average accuracy and standard deviation**
-```{r, warning=F, message=F, error=F}
+```{r}
 
-accuracy <- rep(NA, 10)
+accuracy <- rep(NA, 5)
 set.seed(2)
 # Calculate accuracies for 10 training/test partitions
-for (i in 1:10){
+for (i in 1:5){
     testdf[, "train"] <- ifelse(runif(nrow(testdf)) < 0.8, 1, 0)
     trainset <- testdf[testdf$train == 1, ]
     testset <- testdf[testdf$train == 0, ]
@@ -670,12 +636,12 @@ mean(accuracy)
 sd(accuracy)
 ```
 
-The accuracy mean is 0.6656 with a standard deviation of 0.00776, what will tell us that approx. 66,6% of the data will be classified correctly.
+The accuracy mean is 0.7770 with a standard deviation of 0.0044, what will tell us that approx. 77.7% of the data will be classified correctly.
 
 ```{r}
 plot(svm_model,testset)
 ```
-
+As we can see in this plot the classification use
 
 
 # Week 5 - Neural Networks
