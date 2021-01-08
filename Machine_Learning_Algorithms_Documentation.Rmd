@@ -1,14 +1,17 @@
 ---
 title: "Machine Learning Algorithms Documentation"
-author: "Geiser, Gruen, Hefti, Kuster" 
+author: "Geiser, Gruen, Hefti, Kuster"
 date: "08/01/2021"
 output:
+  word_document:
+    toc: yes
+    toc_depth: '2'
   html_document:
+    number_sections: yes
     toc: yes
     toc_depth: 2
-    number_sections: yes
     toc_float: yes
-  word_document:
+  pdf_document:
     toc: yes
     toc_depth: '2'
 ---
